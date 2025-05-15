@@ -1,0 +1,28 @@
+// src/styles/AppLayout.scss
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+
+  // Sidebar is fixed width
+  > aside {
+    width: 220px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: #1e2a38;
+    color: #fff;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  // Main content area
+  &__content {
+    margin-left: 220px;  // match sidebar width
+    padding: 20px;
+    flex-grow: 1;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+  }
+}

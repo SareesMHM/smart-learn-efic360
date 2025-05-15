@@ -1,0 +1,58 @@
+// src/styles/_forms.scss
+
+// Basic form container styling
+.form-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+// Label styling
+label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 1rem;
+}
+
+// Input and textarea styles
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #4caf50; // primary color
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+}
+
+// Textarea specific
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+// Error message styling
+.error-message {
+  color: #f44336; // red color
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+// Disabled input styling
+input[disabled],
+textarea[disabled],
+select[disabled] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}

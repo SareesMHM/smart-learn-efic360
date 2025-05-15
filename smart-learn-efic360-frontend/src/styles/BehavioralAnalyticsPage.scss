@@ -1,0 +1,24 @@
+// src/styles/BehavioralAnalyticsPage.scss
+
+.behavioral-analytics-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+
+  .error {
+    color: #f44336;
+  }
+
+  pre {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+}

@@ -1,7 +1,9 @@
-// src/pages/LoginPage.jsx
+
 import React, { useState } from 'react';
+
 import authService from '../services/authService';
 import { useNavigate } from 'react-router-dom';
+import '../styles/LoginPage.scss';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,7 +18,7 @@ export default function LoginPage() {
     try {
       const data = await authService.login(email, password);
       localStorage.setItem('token', data.token);
-      // Redirect based on user role or dashboard
+     
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -24,7 +26,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '50px auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
+    <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <input
@@ -32,21 +34,20 @@ export default function LoginPage() {
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
+       
           required
-          style={{ width: '100%', marginBottom: 10, padding: 8, fontSize: 16 }}
-        />
+       
+       />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
-          style={{ width: '100%', marginBottom: 10, padding: 8, fontSize: 16 }}
-        />
-        <button type="submit" style={{ width: '100%', padding: 10, fontSize: 16 }}>
-          Login
-        </button>
-        {error && <p style={{ color: 'red', marginTop: 10 }}>{error}</p>}
+       
+       />
+        <button type="submit">Login</button>
+        {error && <p className="error-message">{error}</p>}
       </form>
     </div>
   );
