@@ -12,10 +12,8 @@ import SessionSummaryPage from './pages/SessionSummaryPage';
 import TeacherSupportPage from './pages/TeacherSupportPage';
 import AdaptiveFlowPage from './pages/AdaptiveFlowPage';
 import ModelTrainingDashboard from './pages/ModelTrainingDashboard';
+import "./App.scss";
 
-import './styles/main.scss';
-import './styles/Sidebar.scss';
-import './styles/header.scss';
 
 function App() {
   return (
