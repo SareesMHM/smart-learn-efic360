@@ -1,68 +1,156 @@
-// _header.scss
-@import './variables';
+/* ===================================== Header Styles ====================================== */
+.navbar {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 1089;
+  border: none;
+  margin-bottom: 0;
+  height: 65px;
+  background-color: #00ab9f; /* Primary color */
+}
 
-.header {
+.navbar .navbar-header {
+  z-index: 10;
+  background: #ffffff;
+  border-bottom: 1px solid #c8c7cc;
+  position: relative;
+  height: 65px;
+}
+
+.navbar .navbar-header a {
+  line-height: 65px;
+  height: 65px;
+}
+
+.navbar .navbar-header .navbar-brand {
+  padding: 0 15px;
+  font-size: 24px;
+  color: #000;
+}
+
+.navbar .navbar-header .navbar-brand img {
+  display: inline-block;
+  margin-top: -6px;
+}
+
+.navbar .navbar-header .menu-toggler {
+  margin-right: 60px;
+  padding: 0 15px;
+  font-size: 17px;
+  color: #c8c7cc;
+}
+
+.navbar .navbar-header .sidebar-toggler {
+  font-size: 17px;
+  padding-right: 15px;
+  color: #c8c7cc;
+}
+
+.navbar .navbar-header .sidebar-toggler:hover {
+  color: #aeacb4;
+}
+
+.navbar .navbar-header .sidebar-mobile-toggler {
+  font-size: 17px;
+  padding-left: 15px;
+  padding-right: 15px;
+  color: #c8c7cc;
+}
+
+.navbar .navbar-header .sidebar-mobile-toggler:hover {
+  color: #aeacb4;
+}
+
+.navbar .navbar-collapse {
+  border-bottom: 1px solid #c8c7cc;
+  background: #ffffff;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+.navbar .navbar-collapse .nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: $primary-color;  // Use your SCSS variable for primary color
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+}
 
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
+.navbar .navbar-collapse .nav-item {
+  padding: 0 15px;
+}
+
+.navbar .navbar-collapse .nav-link {
+  font-size: 16px;
+  color: #444;
+  text-transform: uppercase;
+  padding: 10px 15px;
+}
+
+.navbar .navbar-collapse .nav-link:hover {
+  color: #00ab9f;
+  background-color: rgba(0, 173, 162, 0.1);
+}
+
+.navbar .navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.navbar .navbar-right .dropdown-menu {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.navbar .navbar-right .dropdown-menu li a {
+  color: #00ab9f;
+  padding: 10px 15px;
+}
+
+.navbar .navbar-right .dropdown-menu li a:hover {
+  background-color: #f1f1f1;
+}
+
+.navbar .navbar-right .dropdown-menu li a .icon {
+  margin-right: 10px;
+}
+
+/* Mobile Navigation */
+@media (max-width: 767px) {
+  .navbar .navbar-header .menu-toggler {
+    display: block;
   }
 
-  nav {
-    display: flex;
-    gap: 1.5rem;
-
-    a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-
-      &:hover,
-      &:focus {
-        background-color: rgba(255, 255, 255, 0.2);
-        outline: none;
-      }
-    }
+  .navbar .navbar-collapse {
+    display: none;
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
   }
 
-  .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  .navbar .navbar-collapse.in {
+    display: block;
+  }
 
-    .username {
-      font-weight: 600;
-    }
+  .navbar .navbar-collapse .nav-item {
+    display: block;
+    text-align: center;
+  }
 
-    button {
-      background: transparent;
-      border: 1px solid white;
-      color: white;
-      padding: 0.3rem 0.8rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background-color 0.3s ease;
+  .navbar .navbar-collapse .nav-item a {
+    padding: 15px 0;
+  }
 
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.3);
-      }
-    }
+  .navbar .navbar-collapse .nav-item a:hover {
+    background-color: #00ab9f;
+    color: white;
+  }
+}
+
+@media (max-width: 991px) {
+  .navbar .navbar-collapse {
+    padding-left: 0;
+    padding-right: 0;
   }
 }

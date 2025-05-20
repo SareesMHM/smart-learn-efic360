@@ -2,10 +2,10 @@
 import axios from './api'; // Axios instance configured with baseURL
 
 /**
- * Login user with email and password
- * @param {string} email
- * @param {string} password
- * @returns {Promise<Object>} User data and token
+  Login user with email and password
+  @param {string} email
+  @param {string} password
+ @returns {Promise<Object>} User data and token
  */
 const login = async (email, password) => {
   const response = await axios.post('/auth/login', { email, password });
@@ -13,12 +13,12 @@ const login = async (email, password) => {
 };
 
 /**
- * Register a new user
- * @param {Object} userData - { name, email, password, role }
- * @returns {Promise<Object>} User data and token
+ Register a new user
+  @param {Object} userData - { name, email, password, role }
+  @returns {Promise<Object>} User data and token
  */
 const register = async (userData) => {
-  const response = await axios.post('/auth/register', userData);
+  const response = await axios.post('/registration', userData);
   return response.data; // expected { token, user }
 };
 

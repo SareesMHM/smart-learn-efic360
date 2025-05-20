@@ -1,8 +1,8 @@
 // src/pages/RegistrationPage.jsx
-import React, { useState } from 'react';
-import authService from '../services/authService';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/RegistrationPage.scss';
+import authService from '../services/authService';
+
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -16,20 +16,18 @@ const RegistrationPage = () => {
     parentName: '',
     parentPhone: '',
     gradeId: '',
-    pdfFile: null,
+    confirmPassword: '',
     profileImage: null,
     role: 'student',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === 'pdfFile' && files) {
-      setFormData((prev) => ({ ...prev, pdfFile: files[0] }));
-    } else if (name === 'profileImage' && files) {
+    
+     if (name === 'profileImage' && files) {
       setFormData((prev) => ({ ...prev, profileImage: files[0] }));
     } else if (name === 'gradeId') {
       setFormData((prev) => ({
@@ -51,6 +49,7 @@ const RegistrationPage = () => {
       !formData.fullName ||
       !formData.email ||
       !formData.password ||
+      !formData.confirmPassword ||
       !formData.nic ||
       !formData.dateOfBirth ||
       !formData.address ||
@@ -69,12 +68,18 @@ const RegistrationPage = () => {
       setLoading(false);
       return;
     }
+     //  Check if passwords match
+  if (formData.password !== formData.confirmPassword) {
+    setError('Passwords do not match.');
+    setLoading(false);
+    return;
+  }
 
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
-          if ((key === 'pdfFile' || key === 'profileImage') && value instanceof File) {
+          if ((key === 'profileImage') && value instanceof File) {
             data.append(key, value);
           } else {
             data.append(key, value.toString());
@@ -82,11 +87,21 @@ const RegistrationPage = () => {
         }
       });
 
-      const response = await authService.register(data, true);
-      localStorage.setItem('token', response.token);
-      navigate('/dashboard');
+const message = response.message || '';
+      if (message === 'Admin Dashboard') {
+        alert('Admin registered successfully. Redirecting to Admin Dashboard...');
+        navigate('/admin');
+      } else {
+        alert('Registration successful. Please verify your email.');
+        navigate('/StudentDashboard');
+      }
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      if (err.response?.status === 409) {
+        setError('Email already registered.');
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -117,7 +132,9 @@ const RegistrationPage = () => {
           onChange={handleChange}
           required
         />
+        
 
+       
         <label htmlFor="password">Password</label>
         <input
           id="password"
@@ -125,6 +142,17 @@ const RegistrationPage = () => {
           type="password"
           placeholder="Password"
           value={formData.password}
+          onChange={handleChange}
+          required
+          minLength={6}
+        />
+         <label htmlFor="confirmPassword">confirmPassword</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="confirmPassword"
+          placeholder="confirmPassword"
+          value={formData.confirmPassword}
           onChange={handleChange}
           required
           minLength={6}
@@ -209,14 +237,7 @@ const RegistrationPage = () => {
           ))}
         </select>
 
-        <label htmlFor="pdfFile">Upload Supporting Document (PDF)</label>
-        <input
-          id="pdfFile"
-          name="pdfFile"
-          type="file"
-          accept="application/pdf"
-          onChange={handleChange}
-        />
+        
 
         <label htmlFor="profileImage">Upload Profile Image</label>
         <input
@@ -240,7 +261,7 @@ const RegistrationPage = () => {
           <option value="admin">Admin</option>
         </select>
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} onClick={handleSubmit}>
           {loading ? 'Registering...' : 'Register'}
         </button>
 

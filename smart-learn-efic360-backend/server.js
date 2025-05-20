@@ -4,11 +4,13 @@ const express = require('express');
 const http = require('http');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
+app.use(cors());
 // Connect to MongoDB
 connectDB();
 
@@ -32,18 +34,32 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const authMiddleware = require('./middlewares/authMiddleware');
 
 app.use(express.json());
-app.use(errorHandler);
-app.use('/api/', apiLimiter);
+// app.use(errorHandler);
+// app.use('/api/', apiLimiter);
+app.use('/api/', require("./routes/authRoutes"));
+
 
 
 // Public routes
 app.use('/auth', require('./routes/authRoutes'));
 
 // Protected routes (add authMiddleware)
-app.use('/chat', authMiddleware, chatRoutes);
-app.use('/recommendations', authMiddleware, recommendationRoutes);
+// app.use('/chat', authMiddleware, chatRoutes);
+// app.use('/recommendations', authMiddleware, recommendationRoutes);
 // Add other protected routes similarly
 
 // Optionally, add error handling middleware here
+
+
+const express = require('express');
+
+const gradeRoutes = require('./routes/gradeRoutes');
+
+// Middleware
+app.use(express.json());
+
+// Use the grade routes under this base path
+app.use('/api/grades', gradeRoutes);
+require('./jobs/remindUnverifiedUsers'); //  Import the job
 
 module.exports = app;

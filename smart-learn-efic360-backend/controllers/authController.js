@@ -2,8 +2,8 @@ const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const sendmail = require('../utils/sendMail');
-const sendToken = require('../utils/sendToken');
+const sendmail = require('../utils/emailHelper');
+const sendToken = require('../utils/jwtHelper');
 
 // Register new user
 const register = asyncHandler(async (req, res) => {
@@ -40,6 +40,7 @@ const register = asyncHandler(async (req, res) => {
     <a href="${verificationUrl}">Verify Email</a>
     If you did not register, please ignore this email.
   `;
+  
 
   try {
     await sendmail({
@@ -47,14 +48,22 @@ const register = asyncHandler(async (req, res) => {
       subject: 'Verify your email - Smart Learn EFIC 360',
       message,
     });
-    sendToken(user, 201, res, `Verification email sent to ${user.email}`);
+    const roleMessage = user.role === 'admin'
+      ? 'Admin Dashboard'
+      : 'Registration successful. Please verify your email and wait for admin approval.';
+
+    sendToken(user, 201, res, roleMessage);
   } catch (error) {
     user.emailValidationToken = undefined;
     user.emailValidationTokenExpire = undefined;
     await user.save({ validateBeforeSave: false });
     res.status(500).json({ message: 'Could not send verification email.' });
   }
+ 
+
 });
+
+
 
 // Verify Email
 const verifyEmail = asyncHandler(async (req, res) => {

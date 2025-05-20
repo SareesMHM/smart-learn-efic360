@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
 
+import { useState } from 'react';
+import { FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 
-import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
-import '../styles/LoginPage.scss';
 
 const LoginPage = () => {
   const [emailOrId, setEmailOrId] = useState('');
@@ -36,11 +35,11 @@ const LoginPage = () => {
       localStorage.setItem('user', JSON.stringify(user));
 
       if (user.role === 'STUDENT') {
-        navigate('/student');
-      } else if (user.role === 'STAFF') {
-        navigate('/staff');
+        navigate('/StudentDashboard');
+      } else if (user.role === '/Teacher') {
+        navigate('/TeacherDashboard');
       } else if (user.role === 'ADMIN') {
-        navigate('/admin');
+        navigate('/AdminDashboard');
       } else {
         navigate('/');
       }
@@ -58,11 +57,9 @@ const LoginPage = () => {
     }
   };
 
+   
   return (
-    <div className="login-page">
-      <Helmet>
-        <title>EFIC | Login</title>
-      </Helmet>
+    <div className="login-page">     
 
       <form onSubmit={handleLogin} className="login-form" noValidate>
         <h2 className="login-title">
@@ -114,6 +111,14 @@ const LoginPage = () => {
         >
           {loading ? 'Signing In...' : 'Sign In'}
         </button>
+        <div class="new-account">
+								Don't have an account yet?
+								<a href="/registration">
+									Create an account
+								</a>
+							</div>
+
+        
       </form>
     </div>
   );

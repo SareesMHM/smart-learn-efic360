@@ -1,0 +1,62 @@
+.mentor-list {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.mentor-list ul {
+  list-style-type: none;
+}
+
+.mentor-list li {
+  margin-bottom: 15px;
+}
+
+.mentor-list h3 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.mentor-list button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mentor-list button:hover {
+  background-color: #2980b9;
+}
+
+.book-session {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.book-session input {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
+
+.book-session button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.book-session button:hover {
+  background-color: #2980b9;
+}
+
+.error {
+  color: red;
+}

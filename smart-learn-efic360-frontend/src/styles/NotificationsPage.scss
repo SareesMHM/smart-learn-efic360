@@ -1,0 +1,45 @@
+.notifications-container {
+  padding: 20px;
+  background-color: #f7f7f7;
+  font-family: 'Arial', sans-serif;
+}
+
+.notifications-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.notification-item {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.notification-item.read {
+  background-color: #e0e0e0;
+}
+
+.notification-item.unread {
+  background-color: #fff;
+  border-left: 5px solid #3498db;
+}
+
+button {
+  background-color: #3498db;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+.error {
+  color: red;
+}

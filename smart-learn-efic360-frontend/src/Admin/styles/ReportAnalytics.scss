@@ -1,0 +1,113 @@
+.report-analytics-container {
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    input,
+    select {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+  }
+
+  .charts-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+
+    .chart-card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+
+      h4 {
+        margin-bottom: 1rem;
+        color: #444;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .export-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+
+      &.excel {
+        background-color: #28a745;
+
+        &:hover {
+          background-color: #1e7e34;
+        }
+      }
+
+      &.csv {
+        background-color: #17a2b8;
+
+        &:hover {
+          background-color: #117a8b;
+        }
+      }
+    }
+  }
+
+  .table-section {
+    margin-top: 2rem;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+
+      th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      th {
+        background-color: #f0f0f0;
+        color: #333;
+        font-weight: 600;
+      }
+
+      tr:hover {
+        background-color: #f9f9f9;
+      }
+    }
+  }
+}

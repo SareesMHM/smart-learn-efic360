@@ -1,0 +1,123 @@
+/* src/styles/Feedback.scss */
+
+.feedback-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.feedback-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 24px;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #333;
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      border-color: #0077cc;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0, 119, 204, 0.25);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  button {
+    background-color: #4caf50;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #388e3c;
+    }
+  }
+
+  .error-message {
+    color: #e53935;
+    font-weight: 500;
+  }
+
+  .success-message {
+    color: #4caf50;
+    font-weight: 500;
+  }
+}
+
+/* Admin Feedback List */
+.feedback-list {
+  margin-top: 32px;
+
+  .feedback-item {
+    background: #f9f9f9;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+
+    h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    p {
+      margin: 6px 0;
+      font-size: 0.95rem;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .assign-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:hover {
+        background: #005fa3;
+      }
+    }
+  }
+}

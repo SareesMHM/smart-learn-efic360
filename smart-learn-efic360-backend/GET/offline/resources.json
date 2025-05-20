@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "title": "Math Lesson 1",
+    "description": "Basic algebra concepts and exercises.",
+    "fileUrl": "/path/to/resource1.pdf"
+  },
+  {
+    "id": 2,
+    "title": "Science Lesson 1",
+    "description": "Introduction to biology and ecosystems.",
+    "fileUrl": "/path/to/resource2.pdf"
+  }
+]

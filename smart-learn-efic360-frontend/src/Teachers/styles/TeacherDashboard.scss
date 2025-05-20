@@ -1,0 +1,334 @@
+/* ==========================================================================
+    Teacher Dashboard SCSS
+========================================================================== */
+
+/* General Styles */
+body {
+  background-color: #f7f7ff;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header Styles */
+.home-header {
+  background-color: #00ab9f;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.home-header .logo h1 {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.navbar-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-nav a {
+  color: white;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.navbar-nav a:hover {
+  color: #ddd;
+}
+
+/* Sidebar Styles */
+#sidebar {
+  background-color: #34495e;
+  color: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px;
+  padding: 20px;
+  z-index: 10;
+}
+
+#sidebar a {
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+  display: block;
+  padding: 10px 0;
+}
+
+#sidebar a:hover {
+  background-color: #2c3e50;
+  border-radius: 5px;
+}
+
+#sidebar .navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Main Content Area */
+.main-content {
+  margin-left: 260px;
+  padding: 20px;
+  flex: 1;
+}
+
+.container-fluid {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 30px;
+}
+
+.container-fluid h1 {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.container-fluid .breadcrumb {
+  background-color: transparent;
+  margin-top: 10px;
+  padding: 0;
+}
+
+.container-fluid .breadcrumb li {
+  font-size: 16px;
+}
+
+/* Dashboard Cards (Profile, Bookings, etc.) */
+.panel {
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.panel-body {
+  text-align: center;
+}
+
+.StepTitle {
+  font-size: 20px;
+  margin-top: 20px;
+  color: #333;
+}
+
+.panel-white {
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+
+.panel-body .fa-stack {
+  font-size: 50px;
+  margin-bottom: 15px;
+}
+
+.panel-body .btn-primary {
+  background-color: #3498db;
+  border-color: #3498db;
+  padding: 10px 20px;
+  color: white;
+  text-decoration: none;
+}
+
+.panel-body .btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+.panel-body .btn-primary:active {
+  background-color: #1f618d;
+  border-color: #1f618d;
+}
+
+/* Hero Section */
+.hero-section {
+  background-color: #ecf0f1;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.hero-section h2 {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.hero-section p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.hero-section .btn-primary {
+  background-color: #3498db;
+  border-color: #3498db;
+  padding: 15px 30px;
+  font-size: 18px;
+}
+
+.hero-section .btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+/* Teacher Dashboard Sections */
+
+.dashboard-section {
+  padding: 30px 0;
+  background-color: #fff;
+}
+
+.dashboard-section .panel {
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.dashboard-section .panel-body {
+  text-align: center;
+  padding: 20px;
+}
+
+.dashboard-section .panel-body .fa-stack {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.dashboard-section .panel-body .StepTitle {
+  font-size: 18px;
+  color: #333;
+  margin-top: 10px;
+}
+
+.dashboard-section .panel-body .btn-primary {
+  background-color: #3498db;
+  border-color: #3498db;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.dashboard-section .panel-body .btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+.dashboard-section .panel-body .btn-primary:active {
+  background-color: #1f618d;
+  border-color: #1f618d;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  margin-top: 30px;
+}
+
+.dashboard-content h1 {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.dashboard-content .cards {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dashboard-content .card {
+  flex: 1;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-content .card h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.dashboard-content .card p {
+  font-size: 16px;
+  color: #555;
+}
+
+.dashboard-content .card a {
+  font-size: 16px;
+  color: #3498db;
+  text-decoration: none;
+}
+
+.dashboard-content .card a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.home-footer {
+  background-color: #34495e;
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.home-footer p {
+  margin: 0;
+}
+
+/* Reports & Analytics Section */
+.reports-section {
+  background-color: #f7f7f7;
+  padding: 30px;
+  margin-top: 50px;
+}
+
+.reports-section h3 {
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.reports-section .report-card {
+  display: inline-block;
+  padding: 10px 20px;
+  margin: 10px;
+  background-color: #3498db;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.reports-section .report-card:hover {
+  background-color: #2980b9;
+}
+
+/* Attendance Tracking Section */
+.attendance-section {
+  padding: 30px;
+  background-color: #ecf0f1;
+  margin-top: 50px;
+}
+
+.attendance-section h3 {
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.attendance-section .attendance-bar {
+  height: 20px;
+  background-color: #3498db;
+  border-radius: 10px;
+}
+
+.attendance-section .attendance-bar .attendance {
+  height: 100%;
+  width: 80%; /* For example, 80% attendance rate */
+  background-color: #2980b9;
+  border-radius: 10px;
+}

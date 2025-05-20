@@ -1,0 +1,97 @@
+/* ==========================================================================
+    Badge and Reward System SCSS
+========================================================================== */
+
+.badge-system-page {
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h2 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #0071bc;
+}
+
+.header p {
+  font-size: 18px;
+  color: #555;
+}
+
+.badges, .rewards {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+h3 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.badge-list, .reward-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.badge, .reward {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge h4, .reward h4 {
+  font-size: 20px;
+  margin-top: 10px;
+  color: #333;
+}
+
+.badge p, .reward p {
+  font-size: 16px;
+  color: #555;
+}
+
+.badge-icon, .reward-icon {
+  font-size: 50px;
+  color: #3498db;
+}
+
+.reward .reward-icon {
+  color: #f1c40f;
+}
+
+.reward p {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.reward:hover, .badge:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s;
+}
+
+@media (max-width: 768px) {
+  .badge-list, .reward-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .badge-list, .reward-list {
+    grid-template-columns: 1fr;
+  }
+}
