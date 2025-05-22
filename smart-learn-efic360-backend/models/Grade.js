@@ -1,4 +1,3 @@
-// models/Grade.js
 const mongoose = require('mongoose');
 
 const gradeSchema = new mongoose.Schema({
@@ -21,20 +20,3 @@ const gradeSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Grade', gradeSchema);
-
-
-// routes/gradeRoutes.js
-const express = require('express');
-const router = express.Router();
-const { createGrade, getGrades, updateGrade, deleteGrade } = require('../controllers/gradeController');
-const { isAdmin } = require('../middleware/authMiddleware');
-
-router.route('/')
-  .post(isAdmin, createGrade)  // POST /api/grades
-  .get(getGrades);             // GET /api/grades
-
-router.route('/:id')
-  .put(isAdmin, updateGrade)   // PUT /api/grades/:id
-  .delete(isAdmin, deleteGrade); // DELETE /api/grades/:id
-
-module.exports = router;

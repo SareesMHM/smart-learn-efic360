@@ -120,6 +120,11 @@ const rejectStudent = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'Student rejected and deleted.' });
 });
 
+
+exports.getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().select('-password');
+  res.status(200).json(users);
+});
 // Resend email verification
 const resendEmailVerification = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);

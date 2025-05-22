@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 
-import '../components/AppLayout';
+
 
 const StudentDashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -30,52 +32,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="app-content">
-      {/* Header Section */}
-      <header className="navbar navbar-default navbar-static-top">
-        <div className="navbar-header">
-          <a href="#" className="sidebar-mobile-toggler pull-left hidden-md hidden-lg">
-            <i className="ti-align-justify"></i>
-          </a>
-          <a className="navbar-brand" href="#">
-            <h2 style={{ paddingTop: '20%', color: '#000' }}>Smart Learn EFIC 360</h2>
-          </a>
-          <a href="#" className="sidebar-toggler pull-right visible-md visible-lg">
-            <i className="ti-align-justify"></i>
-          </a>
-          <a className="pull-right menu-toggler visible-xs-block" id="menu-toggler" data-toggle="collapse" href=".navbar-collapse">
-            <span className="sr-only">Toggle navigation</span>
-            <i className="ti-view-grid"></i>
-          </a>
-        </div>
-        <div className="navbar-collapse collapse">
-          <ul className="nav navbar-right">
-            <li style={{ paddingTop: '2%' }}>
-              <h2>Smart Learn EFIC 360</h2>
-            </li>
-            <li className="dropdown current-user">
-              <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-                <img src={userData?.profilePic || 'assets/images/profile.jpg'} alt="User Profile" />
-                <span className="username">
-                  {userData?.username || 'Admin'}
-                  <i className="ti-angle-down"></i>
-                </span>
-              </a>
-              <ul className="dropdown-menu dropdown-dark">
-                <li>
-                  <Link to="/change-password">Change Password</Link>
-                </li>
-                <li>
-                  <Link to="/logout">Log Out</Link>
-                </li>
-              </ul>
-            </li>
-          </ul>
-          <div className="close-handle visible-xs-block menu-toggler" data-toggle="collapse" href=".navbar-collapse">
-            <div className="arrow-left"></div>
-            <div className="arrow-right"></div>
-          </div>
-        </div>
-      </header>
+       <Header />
+      <Sidebar />
 
       {/* Main Content */}
       <div className="main-content">

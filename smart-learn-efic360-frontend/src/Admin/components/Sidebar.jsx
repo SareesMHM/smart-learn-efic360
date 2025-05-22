@@ -1,59 +1,57 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
+ 
 
 const Sidebar = () => {
   return (
     <div className="sidebar app-aside" id="sidebar">
       <div className="sidebar-container perfect-scrollbar">
         <nav>
-          {/* Main Navigation Menu */}
           <div className="navbar-title">
+            <i className="ti-menu" style={{ marginRight: '0px' }}></i>
             <span>Main Navigation</span>
           </div>
+
           <ul className="main-navigation-menu">
-            {/* Dashboard */}
             <li>
-              <Link to="/dashboard">
+              <Link to="/Admin/AdminDashboard">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-home"></i>
                   </div>
                   <div className="item-inner">
-                    <span className="title"> Dashboard </span>
+                    <span className="title"> Admin Dashboard </span>
                   </div>
                 </div>
               </Link>
             </li>
 
-            {/* Assignments */}
             <li>
-              <Link to="/assignments">
+              <Link to="/Admin/AdminRegisterUserForm">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-pencil-alt"></i>
                   </div>
                   <div className="item-inner">
-                    <span className="title"> Assignments </span>
+                    <span className="title"> Add User </span>
                   </div>
                 </div>
               </Link>
             </li>
 
-            {/* Courses */}
             <li>
-              <Link to="/courses">
+              <Link to="/Admin/CourseManager">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-book"></i>
                   </div>
                   <div className="item-inner">
-                    <span className="title"> Courses </span>
+                    <span className="title"> Add Course </span>
                   </div>
                 </div>
               </Link>
             </li>
 
-            {/* Profile */}
             <li>
               <Link to="/profile">
                 <div className="item-content">
@@ -67,7 +65,6 @@ const Sidebar = () => {
               </Link>
             </li>
 
-            {/* Notifications (if applicable) */}
             <li>
               <Link to="/notifications">
                 <div className="item-content">
@@ -81,7 +78,6 @@ const Sidebar = () => {
               </Link>
             </li>
 
-            {/* Contact Us */}
             <li>
               <Link to="/contact">
                 <div className="item-content">
@@ -95,7 +91,6 @@ const Sidebar = () => {
               </Link>
             </li>
 
-            {/* Logout */}
             <li>
               <Link to="/logout">
                 <div className="item-content">

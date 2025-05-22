@@ -61,9 +61,7 @@ const AdaptiveQuizPage = () => {
 
   return (
     <div className="adaptive-quiz-page">
-      <Helmet>
-        <title>Adaptive Quiz | Smart Learn EFIC 360</title>
-      </Helmet>
+      
 
       <h2 className="quiz-title">{quiz ? quiz.title : 'Loading quiz...'}</h2>
 

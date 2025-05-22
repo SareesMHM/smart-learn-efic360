@@ -1,11 +1,20 @@
-/* ==========================================================================
-    Admin Dashboard SCSS
+/* ========================================================================== 
+    Admin Dashboard SCSS 
 ========================================================================== */
 
+/* Variables */
+$primary-color: #00ab9f;
+$secondary-color: #34495e;
+$bg-light: #f7f7ff;
+$text-dark: #333;
+$white: #fff;
+
+/* General Styles */
 body {
-  background-color: #f7f7ff;
+  background-color: $bg-light;
   font-family: 'Arial', sans-serif;
-  color: #333;
+  color: $text-dark;
+  margin: 0;
 }
 
 #app {
@@ -14,84 +23,36 @@ body {
   min-height: 100vh;
 }
 
-.navbar {
-  background-color: #34495e;
-  color: white;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
-.navbar h2 {
-  margin: 0;
-  color: white;
-}
 
-.navbar .username {
-  margin-left: 10px;
-}
 
-.breadcrumb {
-  background-color: transparent;
-  padding-left: 0;
-  margin: 15px 0;
-}
-
-.breadcrumb li {
-  display: inline;
-  font-size: 16px;
-  margin-right: 5px;
-}
-
-.main-content {
+/* Main Content */
+.dashboard-container {
+  margin-left: 250px;
   padding: 30px;
+
+  .dashboard-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 30px;
+  }
+
+  .card {
+    background-color: $white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .card-content {
+      font-size: 14px;
+    }
+  }
 }
 
-.panel {
-  border-radius: 8px;
-  margin-bottom: 30px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease-in-out;
-}
-
-.panel:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
-.panel-body {
-  text-align: center;
-  padding: 20px;
-}
-
-.panel-body .fa-stack {
-  font-size: 50px;
-  margin-bottom: 15px;
-}
-
-.StepTitle {
-  font-size: 20px;
-  color: #333;
-  margin-top: 10px;
-}
-
-.links a {
-  color: #3498db;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.links a:hover {
-  text-decoration: underline;
-}
-
-.footer {
-  background-color: #34495e;
-  color: white;
-  text-align: center;
-  padding: 20px;
-  position: relative;
-  bottom: 0;
-  width: 100%;
-}

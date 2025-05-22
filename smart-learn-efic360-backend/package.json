@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server"
+    "dev": "nodemon server",
+    "start": "npm run dev"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +27,9 @@
     "nodemailer": "^7.0.3",
     "openai": "^4.100.0",
     "pdfkit": "^0.17.1",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "router": "^2.2.0",
+    "validator": "^13.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

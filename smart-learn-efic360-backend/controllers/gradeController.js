@@ -25,7 +25,20 @@ const getGrades = asyncHandler(async (req, res) => {
   res.status(200).json(grades);
 });
 
+// Update grade
+const updateGrade = asyncHandler(async (req, res) => {
+  res.status(200).json({ message: 'Update logic here' });
+});
+
+// Delete grade
+const deleteGrade = asyncHandler(async (req, res) => {
+  res.status(200).json({ message: 'Delete logic here' });
+});
+
+//  Export all functions together
 module.exports = {
   createGrade,
   getGrades,
+  updateGrade,
+  deleteGrade,
 };

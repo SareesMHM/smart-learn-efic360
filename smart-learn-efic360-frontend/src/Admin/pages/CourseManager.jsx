@@ -9,20 +9,45 @@ const CourseManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingCourse, setEditingCourse] = useState(null);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchCourses();
-    fetchTeachers();
+    fetchInitialData();
   }, []);
 
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([fetchCourses(), fetchTeachers()]);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch initial data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchCourses = async () => {
-    const res = await axios.get('/api/courses');
-    setCourses(res.data);
+    try {
+      const res = await axios.get('http://localhost:3000/api/courses'); // update this URL to your actual backend
+      setCourses(res.data || []);
+    } catch (err) {
+      console.error(err);
+      setCourses([]);
+      setError('Could not load courses.');
+    }
   };
 
   const fetchTeachers = async () => {
-    const res = await axios.get('/api/admin/users?role=teacher');
-    setTeachers(res.data.users);
+    try {
+      const res = await axios.get('http://localhost:3000/api/admin/users?role=teacher');
+      setTeachers(res.data.users || []);
+    } catch (err) {
+      console.error(err);
+      setTeachers([]);
+      setError('Could not load teachers.');
+    }
   };
 
   const handleChange = (e) => {
@@ -34,35 +59,45 @@ const CourseManager = () => {
     e.preventDefault();
     try {
       if (editingCourse) {
-        await axios.put(`/api/courses/${editingCourse._id}`, formData);
-        setMessage('Course updated.');
+        await axios.put(`http://localhost:3000/api/courses/${editingCourse._id}`, formData);
+        setMessage('Course updated successfully.');
       } else {
-        await axios.post('/api/courses', formData);
-        setMessage('Course added.');
+        await axios.post('http://localhost:3000/api/courses', formData);
+        setMessage('Course added successfully.');
       }
       setFormData({ subject: '', teacherId: '' });
       setEditingCourse(null);
       fetchCourses();
-    } catch {
+    } catch (err) {
+      console.error(err);
       setMessage('Operation failed.');
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this course?')) {
-      await axios.delete(`/api/courses/${id}`);
-      fetchCourses();
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await axios.delete(`http://localhost:3000/api/courses/${id}`);
+        fetchCourses();
+        setMessage('Course deleted.');
+      } catch (err) {
+        console.error(err);
+        setMessage('Failed to delete course.');
+      }
     }
   };
 
   const filteredCourses = courses.filter(c =>
-    c.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    c.subject?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="course-manager">
       <h2>Course Management</h2>
-      {message && <p>{message}</p>}
+
+      {loading && <p>Loading...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       <form onSubmit={handleSubmit}>
         <input
@@ -83,20 +118,31 @@ const CourseManager = () => {
 
       <input
         type="text"
-        placeholder="Search Subject"
+        placeholder="Search by subject"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-bar"
       />
 
       <ul>
-        {filteredCourses.map(course => (
-          <li key={course._id}>
-            <strong>{course.subject}</strong> — Teacher: {course.teacherName}
-            <button onClick={() => setEditingCourse(course) || setFormData({ subject: course.subject, teacherId: course.teacherId })}>Edit</button>
-            <button onClick={() => handleDelete(course._id)}>Delete</button>
-          </li>
-        ))}
+        {filteredCourses.length > 0 ? (
+          filteredCourses.map(course => (
+            <li key={course._id}>
+              <strong>{course.subject}</strong> — Teacher: {course.teacherName || 'Unassigned'}
+              <button
+                onClick={() => {
+                  setEditingCourse(course);
+                  setFormData({ subject: course.subject, teacherId: course.teacherId });
+                }}
+              >
+                Edit
+              </button>
+              <button onClick={() => handleDelete(course._id)}>Delete</button>
+            </li>
+          ))
+        ) : (
+          <li>No courses found.</li>
+        )}
       </ul>
     </div>
   );

@@ -58,9 +58,7 @@ const OfflineLearning = () => {
 
   return (
     <div className="offline-learning-container">
-      <Helmet>
-        <title>Offline Learning | Smart Learn EFIC 360</title>
-      </Helmet>
+      
       <h1 className="page-title">Offline Learning Resources</h1>
 
       {error && <p className="error-message">{error}</p>}

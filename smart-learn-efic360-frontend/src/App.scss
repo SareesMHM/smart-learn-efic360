@@ -1,9 +1,14 @@
 @use './styles/variables';
-@use './styles/Sidebar';
-@use './styles/Header';
+@use './Admin/styles/Sidebar';
+@use './Admin/styles/Header';
+@use './Admin/styles/Footer';
+@use './Parent/styles/ParentDashboard';
+@use './Parent/styles/ParentStudentDetails';
+
+
 @use './styles/LoginPage';
 @use './styles/RegistrationPage';
-@use './styles/ForgotResetPassword';
+@use './styles/ForgotPassword';
 @use './styles/Home.scss';
 @use './styles/StudentDashboard';
 @use './styles/AttendancePage';
@@ -20,7 +25,7 @@
 @use './Admin/styles/AdminRegisterUserForm';
 @use './Admin/styles/GradeClassManager';
 @use './Admin/styles/ContentManager';
-
+@use './Admin/styles/Verification';
 @use './Admin/styles/CourseManager';
 @use './Admin/styles/ReportAnalytics';
 @use './Admin/styles/Feedback';

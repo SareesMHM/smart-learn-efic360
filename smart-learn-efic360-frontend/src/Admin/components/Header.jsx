@@ -1,10 +1,10 @@
-import React from 'react';
+
 import { Link } from 'react-router-dom';
+
 
 const Header = () => {
   return (
     <header className="navbar navbar-default navbar-static-top">
-      {/* Navbar Header */}
       <div className="navbar-header">
         <a
           href="#"
@@ -15,9 +15,11 @@ const Header = () => {
         >
           <i className="ti-align-justify"></i>
         </a>
+
         <a className="navbar-brand" href="#">
-          <h2 style={{ paddingTop: '20%', color: '#000' }}>Smart Learn EFIC 360</h2>
+          <h2 style={{ paddingTop: '5%', color: '#000' }}>EFIC</h2>
         </a>
+
         <a
           href="#"
           className="sidebar-toggler pull-right visible-md visible-lg"
@@ -26,6 +28,7 @@ const Header = () => {
         >
           <i className="ti-align-justify"></i>
         </a>
+
         <a
           className="pull-right menu-toggler visible-xs-block"
           id="menu-toggler"
@@ -37,40 +40,35 @@ const Header = () => {
         </a>
       </div>
 
-      {/* Navbar Collapse */}
       <div className="navbar-collapse collapse">
         <ul className="nav navbar-right">
-          {/*  Management System Title */}
-          <li style={{ paddingTop: '2%' }}>
+          <li className="hidden-xs" style={{ paddingTop: '5%' }}>
             <h2>Smart Learn EFIC 360</h2>
           </li>
 
-          {/* User Dropdown */}
           <li className="dropdown current-user">
             <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-              <img src="assets/images/images.jpg" alt="User Profile" />
+              <img src="/Admin/images/sa343.jpg" alt="User Profile" />
               <span className="username">
-                Admin
-                <i className="ti-angle-down"></i>
+                Admin <i className="ti-angle-down"></i>
               </span>
             </a>
-            <ul className="dropdown-menu dropdown-dark">
+            <ul className="dropdown-menu dropdown-dark animated fadeInDown">
               <li>
-                <Link to="/change-password">
-                  Change Password
-                </Link>
+                <Link to="/change-password">Change Password</Link>
               </li>
               <li>
-                <Link to="/logout">
-                  Log Out
-                </Link>
+                <Link to="/logout">Log Out</Link>
               </li>
             </ul>
           </li>
         </ul>
 
-        {/* Menu Toggler for Mobile Devices */}
-        <div className="close-handle visible-xs-block menu-toggler" data-toggle="collapse" href=".navbar-collapse">
+        <div
+          className="close-handle visible-xs-block menu-toggler"
+          data-toggle="collapse"
+          href=".navbar-collapse"
+        >
           <div className="arrow-left"></div>
           <div className="arrow-right"></div>
         </div>

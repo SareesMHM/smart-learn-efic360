@@ -19,19 +19,21 @@ const Feedback = () => {
       );
       setMessage('');
       setCategory('Other');
-      fetchFeedbacks();
+      fetchFeedbacks(); // re-fetch feedback after submission
     } catch (err) {
       console.error(err);
     }
   };
 
+  //  Wrap inside a function
   const fetchFeedbacks = async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get('/api/feedback/all', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setFeedbacks(res.data);
+      console.log('Feedback response:', res.data);
+      setFeedbacks(res.data.feedbacks); // adjust if backend returns { feedbacks: [...] }
     } catch (err) {
       console.error(err);
     }
@@ -61,7 +63,7 @@ const Feedback = () => {
       </form>
 
       <h3>All Feedback</h3>
-      {feedbacks.length === 0 ? (
+      {Array.isArray(feedbacks) && feedbacks.length === 0 ? (
         <p>No feedback submitted.</p>
       ) : (
         <ul>

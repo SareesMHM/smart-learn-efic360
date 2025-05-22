@@ -13,3 +13,9 @@ const feedbackRoutes = require('./routes/feedbackRoutes');
 app.use('/api', feedbackRoutes);
 
 
+app.get('/api/feedback/all', (req, res) => {
+  res.json([
+    { _id: '1', category: 'Bug', message: 'Error on login', status: 'Pending' },
+    //...
+  ]);
+});

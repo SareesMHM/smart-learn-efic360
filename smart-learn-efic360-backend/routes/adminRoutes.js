@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
 const {
+  getAllUsers,
   getUsersByRole,
   editUser,
   deleteUser,
   approveStudent,
   rejectStudent,
   resendEmailVerification,
+  addUser,
 } = require('../controllers/adminController');
+const upload = require('../utils/upload');
+const { protect, isAdmin } = require('../middlewares/authMiddleware');
 
 router.post('/users', upload.single('profileImage'), addUser);
 
@@ -17,6 +19,8 @@ router.post('/users', upload.single('profileImage'), addUser);
 router.get('/users', getUsersByRole);
 
 router.get('/users/all', getAllUsers);
+
+router.get('/users', protect, isAdmin, getAllUsers);
 
 
 router.put('/users/:id', editUser);

@@ -30,9 +30,9 @@ const AdminRegisterUserForm = () => {
       }
       data.append('role', role);
       await adminService.addUser(data);
-      setMessage(`✅ ${role} registered successfully.`);
+      setMessage(` ${role} registered successfully.`);
     } catch (err) {
-      setMessage('❌ Registration failed.');
+      setMessage(' Registration failed.');
     }
   };
 
@@ -56,6 +56,12 @@ const AdminRegisterUserForm = () => {
             <input name="email" type="email" placeholder="Email Address" onChange={handleChange} required />
             <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
             <input name="nic" placeholder="NIC" onChange={handleChange} required />
+            <label htmlFor="gender">Gender</label>
+            <select id="gender" name="gender" value={formData.gender || ''} onChange={handleChange} required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
             <input name="dateOfBirth" type="date" onChange={handleChange} required />
             <input name="address" placeholder="Address" onChange={handleChange} required />
             <input name="phone" placeholder="Contact Number" onChange={handleChange} required />
@@ -83,6 +89,13 @@ const AdminRegisterUserForm = () => {
             <input name="parentName" placeholder="Parent Name" onChange={handleChange} required />
             <input name="parentPhone" placeholder="Parent Phone" onChange={handleChange} required />
             <input name="gradeId" placeholder="Grade ID" onChange={handleChange} required />
+             <label htmlFor="gradeId">Grade</label>
+            <select id="gradeId" name="gradeId" value={formData.gradeId || ''} onChange={handleChange} required>
+              <option value="">Select Grade</option>
+              {[...Array(13)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>{`Grade ${i + 1}`}</option>
+              ))}
+            </select>
             <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required />
           </>
         )}

@@ -27,6 +27,8 @@ import AdminDashboard from './Admin/pages/AdminDashboard';
 import UserManagement from './Admin/pages/UserManagement';
 import ParentDashboard from './Parent/pages/ParentDashboard';
 import AccessLogViewer from './Admin/pages/AccessLogViewer';
+// import ApprovalsPage from './Admin/pages/ApprovalsPage';
+
 
 import CourseManager from './Admin/pages/CourseManager';
 import AdminRegisterUserForm from './Admin/pages/AdminRegisterUserForm';
@@ -35,9 +37,13 @@ import ContentManager from './Admin/pages/ContentManager';
 import Feedback from './Admin/pages/Feedback';
 import ReportAnalytics from './Admin/pages/ReportAnalytics';
 import VerificationCenter from './Admin/pages/VerificationCenter';
+import Verification from './Admin/pages/Verification';
+import EmailVerification from './pages/EmailVerification';
 import OfflineLearning from './pages/OfflineLearning';
 import ForgotPassword from './pages/ForgotPassword';
-
+import ParentStudentDetails from './Parent/pages/ParentStudentDetails';
+import SendVerification from './pages/SendVerification';
+import VerifyingEmail from './pages/VerifyingEmail';
 // src/index.js or src/App.js
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -54,7 +60,22 @@ function App() {
           <Route path="/ProfileView" element={<ProfileView />} />
           <Route path="/FeedbackList" element={<FeedbackList />} />
           <Route path="/Teacher/TeacherDashboard" element={<TeacherDashboard />} />
+          {/* <Route path="/Admin/ApprovalsPage" element={<ApprovalsPage />} /> */}
+
+
           <Route path="/Parent/ParentDashboard" element={<ParentDashboard />} />
+          <Route path="/Parent/ParentStudentDetails" element={<ParentStudentDetails />} />
+
+
+
+          <Route path="/EmailVerification" element={<EmailVerification />} />
+          <Route path="/SendVerification" element={<SendVerification />} />
+          <Route path="/VerifyingEmail" element={<VerifyingEmail />} />
+          
+
+          
+
+          <Route path="/Admin/Verification" element={<Verification />} />
           <Route path="/Admin/VerificationCenter" element={<VerificationCenter />} />
           <Route path="/OfflineLearning" element={<OfflineLearning />} />
           <Route path="/NotificationsPage" element={<NotificationsPage />} />

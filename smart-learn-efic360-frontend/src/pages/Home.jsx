@@ -1,5 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 import { Link } from 'react-router-dom';
 
 
@@ -18,7 +17,7 @@ const Home = () => {
             <li className="nav-item"><a href="#services" className="nav-link">Services</a></li>
             <li className="nav-item"><a href="#gallery" className="nav-link">Gallery</a></li>
             <li className="nav-item"><a href="#contact_us" className="nav-link">Contact</a></li>
-            <li className="nav-item"><a href="/login" className="btn btn-primary">Login</a></li>
+            <li className="nav-item"><Link to="/login" className="btn btn-primary">Login</Link></li>
           </ul>
         </nav>
       </header>

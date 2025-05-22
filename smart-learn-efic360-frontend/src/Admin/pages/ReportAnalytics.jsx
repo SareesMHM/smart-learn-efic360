@@ -1,8 +1,7 @@
-// ReportAnalytics.jsx
+// src/pages/ReportAnalytics.jsx
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import axios from 'axios';
-
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -13,6 +12,8 @@ const ReportAnalytics = ({ isAdmin }) => {
   const [grade, setGrade] = useState('');
   const [teacher, setTeacher] = useState('');
   const [subject, setSubject] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchReport();
@@ -20,20 +21,39 @@ const ReportAnalytics = ({ isAdmin }) => {
 
   const fetchReport = async () => {
     try {
-      const res = await axios.get('/api/reports', {
-        params: { start: startDate, end: endDate, grade, teacher, subject }
-      });
-      setData(res.data);
+      setLoading(true);
+      setError('');
+      const params = {};
+
+      if (startDate) params.start = startDate;
+      if (endDate) params.end = endDate;
+      if (grade) params.grade = grade;
+      if (teacher) params.teacher = teacher;
+      if (subject) params.subject = subject;
+
+      const res = await axios.get('http://localhost:3000/api/reports', { params });
+      setData(res.data || []);
     } catch (err) {
       console.error('Error fetching report:', err);
+      setError('Failed to fetch reports.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const exportReport = (format) => {
-    window.open(`/api/reports/export?format=${format}&start=${startDate}&end=${endDate}&grade=${grade}`);
-  };
+    const queryParams = new URLSearchParams();
 
-  if (!isAdmin) return <p>🔒 Access restricted to admins only.</p>;
+    if (startDate) queryParams.append('start', startDate);
+    if (endDate) queryParams.append('end', endDate);
+    if (grade) queryParams.append('grade', grade);
+    if (teacher) queryParams.append('teacher', teacher);
+    if (subject) queryParams.append('subject', subject);
+
+    queryParams.append('format', format);
+
+    window.open(`http://localhost:3000/api/reports/export?${queryParams.toString()}`);
+  };
 
   return (
     <div className="report-analytics">
@@ -53,25 +73,32 @@ const ReportAnalytics = ({ isAdmin }) => {
         <button onClick={() => exportReport('csv')}>📋 Export CSV</button>
       </div>
 
-      <div className="charts">
-        <BarChart width={600} height={300} data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <XAxis dataKey="label" stroke="#333" />
-          <YAxis stroke="#333" />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="value" fill="#8884d8" barSize={30} radius={[5, 5, 0, 0]} />
-        </BarChart>
+      {loading && <p>Loading report data...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        <PieChart width={400} height={300}>
-          <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={100} label>
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend layout="vertical" verticalAlign="middle" align="right" />
-        </PieChart>
-      </div>
+      {data.length > 0 ? (
+        <div className="charts">
+          <BarChart width={600} height={300} data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis dataKey="label" stroke="#333" />
+            <YAxis stroke="#333" />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="value" fill="#8884d8" barSize={30} radius={[5, 5, 0, 0]} />
+          </BarChart>
+
+          <PieChart width={400} height={300}>
+            <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={100} label>
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend layout="vertical" verticalAlign="middle" align="right" />
+          </PieChart>
+        </div>
+      ) : (
+        !loading && <p>No data available for the selected filters.</p>
+      )}
     </div>
   );
 };

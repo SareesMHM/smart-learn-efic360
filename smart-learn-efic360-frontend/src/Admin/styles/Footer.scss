@@ -1,0 +1,41 @@
+
+
+.footer {
+  background-color: darkgray;
+  border-top: 1px solid #c8c7cc;
+  font-size: 12px;
+  padding: 0 20px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1088;
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .pull-left {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: dark;
+  }
+
+  .pull-right {
+    cursor: pointer;
+    font-size: 16px;
+    color: dimgray;
+    transition: color 0.3s;
+
+    &:hover {
+      color: darken;
+    }
+  }
+}

@@ -25,9 +25,10 @@ const AdminUserManager = () => {
 
   const fetchUsers = async () => {
     try {
-      const data = role === 'all'
-        ? (await axios.get('http://localhost:5000/api/admin/users')).data
+      const response = role === 'all'
+        ? await axios.get('http://localhost:5000/api/admin/users')
         : await adminService.getUsersByRole(role);
+      const data = response.data || response;
       setUsers(data);
       setFilteredUsers(data);
     } catch (err) {
@@ -108,7 +109,7 @@ const AdminUserManager = () => {
 
   const indexOfLast = currentPage * usersPerPage;
   const indexOfFirst = indexOfLast - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirst, indexOfLast);
+  const currentUsers = Array.isArray(filteredUsers) ? filteredUsers.slice(indexOfFirst, indexOfLast) : [];
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   return (

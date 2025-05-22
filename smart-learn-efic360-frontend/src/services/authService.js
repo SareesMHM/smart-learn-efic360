@@ -7,8 +7,8 @@ import axios from './api'; // Axios instance configured with baseURL
   @param {string} password
  @returns {Promise<Object>} User data and token
  */
-const login = async (email, password) => {
-  const response = await axios.post('/auth/login', { email, password });
+export const login = async (email, password) => {
+  const response = await axios.post('/login', { email, password });
   return response.data; // expected { token, user }
 };
 
@@ -17,12 +17,14 @@ const login = async (email, password) => {
   @param {Object} userData - { name, email, password, role }
   @returns {Promise<Object>} User data and token
  */
-const register = async (userData) => {
-  const response = await axios.post('/registration', userData);
-  return response.data; // expected { token, user }
+export const register = async (data) => {
+  
+  const response = await axios.post('/register', data,{
+      headers: {
+      'Content-Type': 'multipart/form-data' // ✅ very important
+    }
+  });
+
+  return response.data;
 };
 
-export default {
-  login,
-  register,
-};

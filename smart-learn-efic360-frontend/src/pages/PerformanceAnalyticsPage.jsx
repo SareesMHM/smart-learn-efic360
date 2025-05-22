@@ -43,9 +43,7 @@ const PerformanceAnalyticsPage = () => {
 
   return (
     <div className="performance-analytics-page">
-      <Helmet>
-        <title>Performance Analytics | Smart Learn EFIC 360</title>
-      </Helmet>
+    
 
       <h2 className="title">Performance Analytics</h2>
 

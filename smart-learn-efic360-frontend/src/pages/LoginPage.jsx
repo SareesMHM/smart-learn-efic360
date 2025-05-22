@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
+import { login } from '../services/authService';
+import { useMutation } from '@tanstack/react-query';
 
 
 const LoginPage = () => {
@@ -13,6 +15,42 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+  const mutation = useMutation({
+    mutationFn: () => login(emailOrId,password),
+    onSuccess: (data) => {
+     const { token:accessToken, USER:user } = data;
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      if(user.isvalidEmail)
+      {
+        if (user.role === 'student') {
+          navigate('/StudentDashboard');
+        } else if (user.role === 'teacher') {
+          navigate('/TeacherDashboard');
+          
+        } else if (user.role === 'admin') {
+          navigate('/AdminDashboard');
+        }
+        else if (user.role === 'parent') {
+          navigate('/ParentDashboard');
+        } else {
+          navigate('/');
+        }
+      }
+      else{
+        navigate('/SendVerification',{
+          state:{
+            user:data
+          }
+        });
+      }
+    },
+    onError: (err) => {
+      console.log(err)
+      setError(err.response?.data?.message || 'Login failed.');
+    }
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,24 +63,7 @@ const LoginPage = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.post('/auth/login', {
-        emailOrId,
-        password,
-      });
-
-      const { accessToken, user } = response.data;
-      localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      if (user.role === 'STUDENT') {
-        navigate('/StudentDashboard');
-      } else if (user.role === '/Teacher') {
-        navigate('/TeacherDashboard');
-      } else if (user.role === 'ADMIN') {
-        navigate('/AdminDashboard');
-      } else {
-        navigate('/');
-      }
+      mutation.mutate();
     } catch (err) {
       const message = err?.response?.data?.message;
       if (message === 'Email or ID does not exist') {
@@ -101,13 +122,13 @@ const LoginPage = () => {
         </div>
 
         <div className="forgot-password">
-          <a href="/forgot-password">Forgot Password?</a>
+          <a href="/ForgotPassword">Forgot Password?</a>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className={`btn-submit ${loading ? 'loading' : ''}`}
+          className={`btn-submit ${loading ? 'loading' : ''}`} 
         >
           {loading ? 'Signing In...' : 'Sign In'}
         </button>

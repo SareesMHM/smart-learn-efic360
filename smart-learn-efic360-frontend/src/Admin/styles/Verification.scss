@@ -1,0 +1,58 @@
+// Define variables for colors
+$primary-color: rgb(13, 52, 73);
+$hover-bg: $primary-color;
+$hover-text: white;
+$border-color: black;
+$button-border: rgb(3, 0, 0);
+
+// Table container
+.tableDetails {
+  border: 3px solid $border-color;
+  margin-right: 80px;
+  border-radius: 10px;
+  height: 100%;
+  width: 800px;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+      text-align: center;
+      color: black;
+    }
+
+    .thead {
+      background-color: $primary-color;
+      color: white;
+      text-align: center;
+    }
+  }
+}
+
+// Button style
+.buttonDark {
+  text-align: center;
+  margin: 2px;
+  margin-left: 10px;
+  border: 3px solid $button-border;
+  background-color: white;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 12px;
+  width: 100px;
+  height: 30px;
+  color: black;
+
+  &:hover {
+    background-color: $hover-bg;
+    color: $hover-text;
+    border-color: rgb(240, 240, 240);
+  }
+}
+
+// Centered width container
+.widthCenter {
+  width: 80%;
+}
