@@ -1,52 +1,67 @@
 import React, { useEffect } from 'react';
+import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import Modal from 'react-bootstrap/Modal';
+import icon from '../images/efic-icon-512.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { changeEmail, resendEmail } from '../services/authService';
+
 
 const SendVerification = () => {
- const location =useLocation();
+  const [show, setShow] = useState(false);
+  const navigate=useNavigate()
+  const location =useLocation();
  const {user}=location.state
+  
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(()=>{
     if(user?.isvalidEmail)
     {      
-      /* if(user && user.role ==='Admin')
-      {
-        dispatch(getTotals_per_month)
-        dispatch(getTotals)
-        return navigate('/admin')
-      } 
-      else if(user && user.role ==='Product Owner')
-      {
-        return navigate('/ProductOwner/DashBoard')
-      } 
-      else */ return navigate('/')
+       return navigate('/')
     }
     if(message) {
       toast.success(message, {
         position: toast.POSITION.BOTTOM_CENTER,
-        onOpen:dispatch(clearMessage())
       });
     }
     if(error){
       toast.error(error, {
         position: toast.POSITION.BOTTOM_CENTER,
-        onOpen:()=>dispatch(clearAuthError)
       });
     }
-  },[message,error,dispatch])
+  },[message,error])
 
  
 
-  const handleResendLink = () =>{
-    dispatch(resendEmail)
-  };
-  const handleChangeEmail=()=>{
-    dispatch(changeEmail(email))
-    setShow(false)
+ const handleResendLink = async () => {
+  try {
+    const data = await resendEmail();
+    setMessage(data.message);
+  } catch (error) {
+    setMessage('Failed to resend email.');
   }
+};
+
+const handleChangeEmail = async () => {
+  try {
+    const data = await changeEmail(email);
+    setMessage(data.message);
+    setShow(false);
+  } catch (error) {
+    setMessage('Failed to change email.');
+  }
+};
 
   return (
+    <>
     <center>
     <div className='container'>
       <div className='frame'>
@@ -63,6 +78,36 @@ const SendVerification = () => {
       </div>
     </div>
     </center>
+    
+    <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Change your email address</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+              <Form.Label>Email address</Form.Label>
+              <Form.Control
+                type="email"
+                value = {email}
+                onChange={(e)=>setEmail(e.target.value)}
+                placeholder='Enter your new Email'
+                autoFocus
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleChangeEmail}>
+            Upadate Email & Resend Link
+          </Button>
+        </Modal.Footer>
+        
+      </Modal>    
+    </>
   )
 }
 

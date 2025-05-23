@@ -1,47 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-const upload = require('../utils/upload');
-const { register, login } = require('../controllers/authController');
+const upload = require('../utils/upload'); // Make sure this is correct
+const { register, login, resendVerificationEmail, verifyEmail, logout, getProfile, changeUserEmail } = require('../controllers/authController');
+const { protect } = require('../middlewares/authMiddleware');
 
-
-
-
-
-// POST /api/auth/login
-
-
-// POST /api/auth/registration (with profileImage file upload)
+// Ensure all handlers are functions
 router.post('/register', upload.fields([{ name: 'profileImage', maxCount: 1 }]), register);
 router.post('/login', login);
+router.put('/email/resend', protect, resendVerificationEmail);
+router.put('/email/verify/:token', protect, verifyEmail);
+router.put('/email/change', protect, changeUserEmail);
+router.put('/logout',logout );
+router.get('/getProfile',protect,getProfile );
 
 module.exports = router;
-
-
-
-
-
-
-
-
-
-
-
-
-
-// router.post('/register', register).post(upload.fields([{ name: 'profileImage', maxCount: 1 }]), register);
-
-
-
-// router.route('/email/verify/:token').put(isAuthenticatedUser,verifyEmail)
-// router.route('/email/resend').put(isAuthenticatedUser,resendVerificationEmail)
-// router.route('/email/change').put(isAuthenticatedUser,changeUserEmail)
-// router.route('/login').post(login)
-// router.route('/logout').get(logout)
-// router.route('/password/forgot').post(forgotPassword)
-// router.route('/password/reset/:token').put(resetPassword)
-// router.route('/myprofile').get(isAuthenticatedUser,getProfile)
-// router.route('/myprofile/changepassword').put(isAuthenticatedUser,changePassword)
-// router.route('/myprofile/edit').put(isAuthenticatedUser,upload.fields([{name:'profile'},{name:'certificate'},{name:'currentBill'}]),updateMyprofile)
-// router.route('/myprofile/delete').delete(isAuthenticatedUser,deleteMyprofile)
-// module.exports = router;

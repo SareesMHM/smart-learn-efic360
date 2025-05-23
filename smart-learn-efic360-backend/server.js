@@ -4,16 +4,22 @@ const http = require('http');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Connect to MongoDB
 connectDB();
 
+// Use cookie parser middleware
+app.use(cookieParser());
+
 // Middleware
-app.use(cors());
+app.use(cors(
+ { credentials: true}
+));
 app.use(express.json());
 
 // Public Routes

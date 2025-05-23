@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import { login } from '../services/authService';
+
 import { useMutation } from '@tanstack/react-query';
 
 
@@ -19,8 +20,8 @@ const LoginPage = () => {
     mutationFn: () => login(emailOrId,password),
     onSuccess: (data) => {
      const { token:accessToken, USER:user } = data;
-      localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(user));
+      // localStorage.setItem('token', accessToken);
+      // localStorage.setItem('user', JSON.stringify(user));
 
       if(user.isvalidEmail)
       {

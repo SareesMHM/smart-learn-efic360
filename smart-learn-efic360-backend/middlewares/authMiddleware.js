@@ -4,11 +4,11 @@ const User = require('../models/User'); // make sure User model exists
 
 // Middleware to protect routes
 const protect = asyncHandler(async (req, res, next) => {
-  let token;
+  const{token}=req.cookies 
+   if(!token)return res.status(401).json({success:false,message:"Before access that page you have to login first"})
 
-  if (req.headers.authorization?.startsWith('Bearer')) {
     try {
-      token = req.headers.authorization.split(' ')[1];
+     
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
       req.user = await User.findById(decoded.id).select('-password');
@@ -21,9 +21,6 @@ const protect = asyncHandler(async (req, res, next) => {
       console.error('Auth error:', err);
       return res.status(401).json({ message: 'Token verification failed' });
     }
-  } else {
-    res.status(401).json({ message: 'No token provided' });
-  }
 });
 
 // Middleware to check for admin role

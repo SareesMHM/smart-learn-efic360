@@ -1,32 +1,39 @@
+// Global Variables
 @use './styles/variables';
-@use './Admin/styles/Sidebar';
+
+// Admin Styles
+@use './Admin/styles/AccessLogViewer';
+@use './Admin/styles/AdminDashboard';
+@use './Admin/styles/AdminRegisterUserForm';
+@use './Admin/styles/ContentManager';
+@use './Admin/styles/CourseManager';
+@use './Admin/styles/Feedback';
+@use './Admin/styles/GradeClassManager';
 @use './Admin/styles/Header';
+@use './Admin/styles/ReportAnalytics';
+@use './Admin/styles/Sidebar';
+@use './Admin/styles/UserManagement';
+@use './Admin/styles/Verification';
 @use './Admin/styles/Footer';
+
+// Parent Styles
 @use './Parent/styles/ParentDashboard';
 @use './Parent/styles/ParentStudentDetails';
 
+// Teacher Styles
+@use './Teachers/styles/TeacherDashboard';
 
-@use './styles/LoginPage';
-@use './styles/RegistrationPage';
-@use './styles/ForgotPassword';
+// General / Common Styles
 @use './styles/Home.scss';
-@use './styles/StudentDashboard';
+@use './styles/AdaptiveQuizPage';
 @use './styles/AttendancePage';
 @use './styles/BadgeSystemPage';
-@use './styles/AdaptiveQuizPage';
-@use './styles/ProfileEditView';
-@use './styles/OfflineLearning';
-@use './styles/NotificationsPage';
 @use './styles/FeedbackPage';
+@use './styles/ForgotPassword';
+@use './styles/LoginPage';
 @use './styles/mentor';
-@use './Teachers/styles/TeacherDashboard';
-@use './Admin/styles/AdminDashboard';
-@use './Admin/styles/UserManagement';
-@use './Admin/styles/AdminRegisterUserForm';
-@use './Admin/styles/GradeClassManager';
-@use './Admin/styles/ContentManager';
-@use './Admin/styles/Verification';
-@use './Admin/styles/CourseManager';
-@use './Admin/styles/ReportAnalytics';
-@use './Admin/styles/Feedback';
-@use './Admin/styles/AccessLogViewer';
+@use './styles/NotificationsPage';
+@use './styles/OfflineLearning';
+@use './styles/ProfileEditView';
+@use './styles/RegistrationPage';
+@use './styles/StudentDashboard';

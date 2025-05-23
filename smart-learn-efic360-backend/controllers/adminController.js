@@ -11,6 +11,7 @@ const addUser = asyncHandler(async (req, res) => {
     email,
     password,
     confirmPassword,
+ 
     nic,
     dateOfBirth,
     address,
@@ -26,7 +27,7 @@ const addUser = asyncHandler(async (req, res) => {
     role
   } = req.body;
 
-  if (!role || !fullName || !email || !password || !nic || !dateOfBirth || !address || !phone) {
+  if (!role || !fullName || !email || !password || !nic || !dateOfBirth || !address || !phone|| (role === 'student' && !parentnic)) {
     return res.status(400).json({ message: 'Missing required fields.' });
   }
 
@@ -46,6 +47,7 @@ const addUser = asyncHandler(async (req, res) => {
     role,
     parentName: role === 'student' ? parentName : undefined,
     parentPhone: role === 'student' ? parentPhone : undefined,
+    parentnic: role === 'student' ? parentnic : role === 'parent' ? parentnic : undefined,
     gradeId: role === 'student' ? gradeId : undefined,
     subject: role === 'teacher' ? subject : undefined,
     qualifications: role === 'teacher' ? qualifications : undefined,

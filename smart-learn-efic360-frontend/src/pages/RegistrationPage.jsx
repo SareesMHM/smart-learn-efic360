@@ -111,7 +111,7 @@ const RegistrationPage = () => {
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'address' && typeof value === 'object') {
           Object.entries(value).forEach(([addrKey, addrValue]) => {
-            data.append(`address.${addrKey}`, addrValue); // ✅ use dot notation
+            data.append(`address.${addrKey}`, addrValue); // use dot notation
           });
         } else if (value !== null && value !== undefined) {
           if (key === 'profileImage' && value instanceof File) {

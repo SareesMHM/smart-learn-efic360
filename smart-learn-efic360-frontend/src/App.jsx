@@ -47,13 +47,16 @@ import VerifyingEmail from './pages/VerifyingEmail';
 // src/index.js or src/App.js
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { ToastContainer } from 'react-toastify';
 
 
 
 
 function App() {
   return (
-       <Routes>
+    <>
+    <ToastContainer theme='dark'/> 
+     <Routes>
          <Route path="/" element={<Home />} />
           <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/ProfileEdit" element={<ProfileEdit />} />
@@ -107,7 +110,9 @@ function App() {
         
         {/* Add more routes as needed */}
       </Routes>
-    
+     
+    </>
+      
   );
 }
 
