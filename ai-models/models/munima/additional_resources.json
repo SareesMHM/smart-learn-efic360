@@ -1,0 +1,54 @@
+{
+  "resources": [
+    {
+      "id": "res001",
+      "title": "OWASP Top 10 for Beginners",
+      "type": "Article",
+      "topic": "Web Security",
+      "level": "Beginner",
+      "url": "https://owasp.org/www-project-top-ten/",
+      "description": "A foundational resource to understand the top security risks in web applications.",
+      "tags": ["owasp", "web", "vulnerabilities"]
+    },
+    {
+      "id": "res002",
+      "title": "Cybrary - Introduction to Cybersecurity",
+      "type": "Video",
+      "topic": "Cybersecurity Basics",
+      "level": "Beginner",
+      "url": "https://www.cybrary.it/course/intro-to-cybersecurity/",
+      "description": "Free video course introducing core cybersecurity concepts.",
+      "tags": ["cybersecurity", "course", "basics"]
+    },
+    {
+      "id": "res003",
+      "title": "Common Vulnerability Scoring System (CVSS) Calculator",
+      "type": "Tool",
+      "topic": "Risk Scoring",
+      "level": "Intermediate",
+      "url": "https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator",
+      "description": "Use this calculator to determine CVSS scores for known vulnerabilities.",
+      "tags": ["cvss", "risk", "scoring", "nist"]
+    },
+    {
+      "id": "res004",
+      "title": "Exploring EPSS Predictions",
+      "type": "Tool",
+      "topic": "Exploit Prediction",
+      "level": "Advanced",
+      "url": "https://www.first.org/epss/",
+      "description": "Check real-time exploitability scores of vulnerabilities.",
+      "tags": ["epss", "prediction", "vulnerabilities"]
+    },
+    {
+      "id": "res005",
+      "title": "MITRE ATT&CK Matrix",
+      "type": "Reference",
+      "topic": "Threat Intelligence",
+      "level": "Advanced",
+      "url": "https://attack.mitre.org/matrices/enterprise/",
+      "description": "Comprehensive framework for adversary behavior in cybersecurity.",
+      "tags": ["mitre", "attack", "framework"]
+    }
+  ]
+}

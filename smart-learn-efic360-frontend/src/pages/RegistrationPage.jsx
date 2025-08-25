@@ -36,6 +36,7 @@ const RegistrationPage = () => {
   const mutation = useMutation({
     mutationFn: (data) => register(data),
     onSuccess: (data) => {
+       localStorage.setItem('role', JSON.stringify(data.role));
       alert('Registration successful!');
       if (data.role === 'admin') {
         alert('Admin registered successfully. Redirecting to Admin Dashboard...');
@@ -82,11 +83,11 @@ const RegistrationPage = () => {
 
     const {
       fullName, email, password, confirmPassword, parentnic, dateOfBirth,
-       phone, parentName, parentPhone, gradeId ,address
+        parentName, parentPhone, gradeId ,gender,address
     } = formData;
 
     if (!fullName || !email || !password || !confirmPassword || !parentnic || !dateOfBirth ||
-         !phone || !parentName || !parentPhone || !gradeId || !gender ||
+          !parentName || !parentPhone || !gradeId || !gender ||
         !address.number || !address.street || !address.city || !address.district || !address.postalCode) {
       setError('Please fill all required fields.');
       setLoading(false);
@@ -189,8 +190,7 @@ const RegistrationPage = () => {
 
         
 
-        <label htmlFor="phone">Phone Number</label>
-        <input id="phone" name="phone" type="tel" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required />
+        
 
         <label htmlFor="parentName">Parent/Guardian Name</label>
         <input id="parentName" name="parentName" type="text" placeholder="Parent/Guardian Name" value={formData.parentName} onChange={handleChange} required />

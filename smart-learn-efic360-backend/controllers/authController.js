@@ -1,14 +1,16 @@
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+const {User, Admin, Parent, Teacher, Student} = require('../models/User');
 const sendmail = require('../utils/emailHelper');
 const sendToken = require('../utils/jwtHelper');
 
 // Register new user
 const register = asyncHandler(async (req, res,next) => {
   const { role, email, password, confirmPassword } = req.body;
-
+   if(req.files){
+      req.body.profileImage=`${process.env.BACK_END_URL}/uploads/users/${encodeURI(req.files['profileImage'][0].filename)}`
+    }
   if (!role || !email || !password || !confirmPassword) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
@@ -19,9 +21,31 @@ const register = asyncHandler(async (req, res,next) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) return res.status(409).json({ message: 'Email already registered.' });
 
-  const user = new User({
-    ...req.body
-  });
+  //create data based on role
+    var user;
+    if(role==="admin")
+    {
+         user=await Admin.create(req.body)
+    }
+    else if(role==="parent")
+    {
+          
+         user=await Parent.create(req.body) // need to verify by Admin after status will uptaded
+  
+         //await Processing.create(user.findOne({email:user.email})) // need to verify by Admin after status will uptaded
+    }    
+    else if(role==="teacher")
+    {
+         user=await Teacher.create(req.body)  
+    }
+
+    else if(role==="student"){
+         user=await Student.create(req.body) 
+    }
+    
+  // const user = new User({
+  //   ...req.body
+  // });
 
   // Create email verification token
   const emailToken = crypto.randomBytes(20).toString('hex');
@@ -30,7 +54,7 @@ const register = asyncHandler(async (req, res,next) => {
 
   await user.save();
 
-  const verificationUrl = `${process.env.FRONT_END_URL}/email/verify/${emailToken}`;
+  const verificationUrl = `${process.env.FROND_END_URL}/email/verify/${emailToken}`;
   const message = `
     Hi ${user.firstname || ''} ${user.lastname || ''},
     Please verify your email by clicking the link below:
@@ -228,6 +252,7 @@ const verifyEmail=asyncHandler(async(req,res)=>{
   }
 })
 
+
 // Resend Verification Email
 // const resendVerificationEmail = asyncHandler(async (req, res) => {
 //   const user = req.user;
@@ -239,7 +264,7 @@ const verifyEmail=asyncHandler(async(req,res)=>{
 //   user.emailValidationTokenExpire = Date.now() + 3600000;
 //   await user.save({ validateBeforeSave: false });
 
-//   const verificationUrl = `${process.env.FRONT_END_URL}/email/verify/${emailToken}`;
+//   const verificationUrl = `${process.env.FROND_END_URL}/email/verify/${emailToken}`;
 //   const message = `
 //     Hi ${user.firstname || ''} ${user.lastname || ''},
 //     Please verify your email by clicking the link below:
@@ -318,7 +343,7 @@ const changeUserEmail = asyncHandler(async (req, res) => {
   user.emailValidationTokenExpire = Date.now() + 3600000;
   await user.save({ validateBeforeSave: false });
 
-  const verificationUrl = `${process.env.FRONT_END_URL}/email/verify/${emailToken}`;
+  const verificationUrl = `${process.env.FROND_END_URL}/email/verify/${emailToken}`;
   const message = `
     Hi ${user.firstname || ''} ${user.lastname || ''},
     Please verify your new email by clicking the link below:
@@ -394,7 +419,7 @@ const logout=(req,res,next)=>{
      res.status(400).json({success:"fail",message:error.message})
    }
 } 
-// Forgot Password
+
 // const forgotPassword = asyncHandler(async (req, res) => {
 //   const { email } = req.body;
 
@@ -409,7 +434,7 @@ const logout=(req,res,next)=>{
 
 //   await user.save({ validateBeforeSave: false });
 
-//   const resetUrl = `${process.env.FRONT_END_URL}/password/reset/${resetToken}`;
+//   const resetUrl = `${process.env.FROND_END_URL}/password/reset/${resetToken}`;
 //   const message = `
 //     You requested a password reset.
 //     Click here to reset your password: ${resetUrl}

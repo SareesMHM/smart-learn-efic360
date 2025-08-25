@@ -1,27 +1,30 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 // import { verifyEmail } from '../features/auth/'; // Adjust path as needed
 import icon from "../images/efic-icon-512.png" // Adjust this to your actual image path
+import { verifyEmail } from '../services/authService';
+import { useMutation } from '@tanstack/react-query';
 
 const VerifyingEmail = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { token } = useParams();
-
-  const { user, error } = useSelector((state) => state.auth);
+  const role = localStorage.getItem('role');
+  const verifyingEmailMutation = useMutation({
+    mutationFn: verifyEmail,
+    onSuccess: (data) => toast.success(data.message),
+    onError: () => 
+      {
+      toast.error('Failed to resend email.')
+      navigate('/register/verify/email');
+      }
+  });
 
   useEffect(() => {
     if (!token) return navigate('/register/verify/email');
-    dispatch(verifyEmail(token));
-  }, [dispatch, navigate, token]);
+   verifyingEmailMutation.mutate(token);
+  }, [navigate, token]);
 
-  useEffect(() => {
-    if (error) {
-      navigate('/register/verify/email');
-    }
-  }, [error, navigate]);
 
   return (
     <center>
@@ -32,8 +35,8 @@ const VerifyingEmail = () => {
             <h1>Email Verified</h1>
             <p>Your email address was successfully verified</p>
             <Link to={
-              user?.role === 'Admin' ? '/admin' :
-              user?.role === 'Student' ? '/StudentDashboard' : '/'
+              role === 'admin' ? '/admin' :
+              role === 'student' ? '/StudentDashboard' : '/'
             }>
               Back to Home
             </Link>

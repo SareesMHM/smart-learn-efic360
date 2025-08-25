@@ -1,10 +1,11 @@
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // make sure User model exists
+const {User} = require('../models/User'); // make sure User model exists
 
 // Middleware to protect routes
 const protect = asyncHandler(async (req, res, next) => {
   const{token}=req.cookies 
+  console.log(token)
    if(!token)return res.status(401).json({success:false,message:"Before access that page you have to login first"})
 
     try {

@@ -13,7 +13,7 @@ exports.resendVerificationEmail = async (req, res) => {
   user.emailValidationTokenExpire = Date.now() + 3600000; // 1 hour
   await user.save({ validateBeforeSave: false });
 
-  const verifyURL = `${process.env.FRONT_END_URL}/email/verify/${token}`;
+  const verifyURL = `${process.env.FROND_END_URL}/email/verify/${token}`;
   const message = `<p>Hi ${user.fullName},</p><p>Click below to verify your email:</p><a href="${verifyURL}">Verify Email</a>`;
 
   await sendmail({ email: user.email, subject: 'Verify Your Email', message });

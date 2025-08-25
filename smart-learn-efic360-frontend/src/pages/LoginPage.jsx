@@ -21,20 +21,20 @@ const LoginPage = () => {
     onSuccess: (data) => {
      const { token:accessToken, USER:user } = data;
       // localStorage.setItem('token', accessToken);
-      // localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', JSON.stringify(user.role));
 
       if(user.isvalidEmail)
       {
         if (user.role === 'student') {
           navigate('/StudentDashboard');
         } else if (user.role === 'teacher') {
-          navigate('/TeacherDashboard');
+          navigate('/Teacher/TeacherDashboard');
           
         } else if (user.role === 'admin') {
-          navigate('/AdminDashboard');
+          navigate('/Admin/AdminDashboard');
         }
         else if (user.role === 'parent') {
-          navigate('/ParentDashboard');
+          navigate('/Parent/ParentDashboard');
         } else {
           navigate('/');
         }

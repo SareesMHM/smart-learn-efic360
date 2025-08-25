@@ -8,19 +8,29 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const server = http.createServer(app);
+const bodyParser=require('body-parser')
+const path=require("path")
 const PORT = process.env.PORT;
 
 // Connect to MongoDB
 connectDB();
 
-// Use cookie parser middleware
-app.use(cookieParser());
+app.use(cors(
+ {
+  origin: 'http://localhost:5173', // replace with your frontend URL
+  credentials: true
+}
+));
+
+//to use cookie object in the req
+app.use(cookieParser())
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Middleware
-app.use(cors(
- { credentials: true}
-));
+
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname,'uploads') ) )
 
 // Public Routes
 // app.use('/auth', require('./routes/authRoutes'));

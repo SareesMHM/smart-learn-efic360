@@ -1,43 +1,51 @@
 
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 
 const Header = () => {
+   // State for sidebar open/close
+  const [sidebarClosed, setSidebarClosed] = useState(false);
+
+  // Toggle sidebar open/close
+  const toggleSidebar = () => {
+    setSidebarClosed(prev => !prev);
+
+    // Additionally, if your #app container needs a class, toggle it here
+    // For example, toggling 'app-sidebar-closed' class on body or #app
+    const appElement = document.getElementById('app');
+    if (appElement) {
+      appElement.classList.toggle('app-sidebar-closed');
+    }
+  };
   return (
     <header className="navbar navbar-default navbar-static-top">
       <div className="navbar-header">
-        <a
-          href="#"
+        <button
+          type="button"
           className="sidebar-mobile-toggler pull-left hidden-md hidden-lg"
-          data-toggle-class="app-slide-off"
-          data-toggle-target="#app"
-          data-toggle-click-outside="#sidebar"
+          aria-label="Toggle sidebar"
+          onClick={toggleSidebar}
         >
           <i className="ti-align-justify"></i>
-        </a>
+        </button>
 
         <a className="navbar-brand" href="#">
           <h2 style={{ paddingTop: '5%', color: '#000' }}>EFIC</h2>
         </a>
 
-        <a
-          href="#"
-          className="sidebar-toggler pull-right visible-md visible-lg"
-          data-toggle-class="app-sidebar-closed"
-          data-toggle-target="#app"
-        >
-          <i className="ti-align-justify"></i>
-        </a>
+       
 
-        <a
-          className="pull-right menu-toggler visible-xs-block"
-          id="menu-toggler"
-          data-toggle="collapse"
-          href=".navbar-collapse"
-        >
-          <span className="sr-only">Toggle navigation</span>
-          <i className="ti-view-grid"></i>
-        </a>
+        <button
+  type="button"
+  className="sidebar-mobile-toggler pull-left hidden-md hidden-lg"
+  aria-label="Toggle sidebar"
+  onClick={() => {
+    
+  }}
+>
+  <i className="ti-align-justify"></i>
+</button>
       </div>
 
       <div className="navbar-collapse collapse">
@@ -48,9 +56,9 @@ const Header = () => {
 
           <li className="dropdown current-user">
             <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-              <img src="/Admin/images/sa343.jpg" alt="User Profile" />
+              <img src="" alt="User Profile" />
               <span className="username">
-                Admin <i className="ti-angle-down"></i>
+                Student <i className="ti-angle-down"></i>
               </span>
             </a>
             <ul className="dropdown-menu dropdown-dark animated fadeInDown">
@@ -65,9 +73,12 @@ const Header = () => {
         </ul>
 
         <div
-          className="close-handle visible-xs-block menu-toggler"
-          data-toggle="collapse"
-          href=".navbar-collapse"
+           className="close-handle visible-xs-block menu-toggler"
+          onClick={toggleSidebar}
+          role="button"
+          tabIndex={0}
+          aria-label="Close menu"
+          onKeyPress={e => { if (e.key === 'Enter') toggleSidebar(); }}
         >
           <div className="arrow-left"></div>
           <div className="arrow-right"></div>

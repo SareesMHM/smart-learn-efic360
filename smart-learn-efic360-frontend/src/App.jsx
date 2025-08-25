@@ -55,7 +55,7 @@ import { ToastContainer } from 'react-toastify';
 function App() {
   return (
     <>
-    <ToastContainer theme='dark'/> 
+    <ToastContainer theme='dark' position='bottom-center'/> 
      <Routes>
          <Route path="/" element={<Home />} />
           <Route path="/ForgotPassword" element={<ForgotPassword />} />
@@ -73,7 +73,7 @@ function App() {
 
           <Route path="/EmailVerification" element={<EmailVerification />} />
           <Route path="/SendVerification" element={<SendVerification />} />
-          <Route path="/VerifyingEmail" element={<VerifyingEmail />} />
+          <Route path="/email/verify/:token" element={<VerifyingEmail />} />
           
 
           

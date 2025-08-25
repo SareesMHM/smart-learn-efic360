@@ -3,15 +3,11 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const sendmail = require('../utils/emailHelper');
-
 // Add user by admin
 const addUser = asyncHandler(async (req, res) => {
   const {
     fullName,
     email,
-    password,
-    confirmPassword,
- 
     nic,
     dateOfBirth,
     address,
@@ -34,7 +30,7 @@ const addUser = asyncHandler(async (req, res) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) return res.status(409).json({ message: 'Email already registered.' });
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  
 
   const user = new User({
     fullName,
@@ -71,7 +67,6 @@ const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find();
   res.status(200).json(users);
 });
-
 // GET /api/admin/users?role=student
 const getUsersByRole = asyncHandler(async (req, res) => {
   const { role } = req.query;
@@ -79,22 +74,16 @@ const getUsersByRole = asyncHandler(async (req, res) => {
   const users = await User.find({ role });
   res.status(200).json(users);
 });
-
-
 // PUT /api/admin/users/:id
 const editUser = asyncHandler(async (req, res) => {
   const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.status(200).json(updated);
 });
-
-
 // DELETE /api/admin/users/:id
 const deleteUser = asyncHandler(async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
   res.status(200).json({ message: 'User deleted' });
 });
-
-
 // Get users by role
 
 
@@ -110,7 +99,6 @@ const approveStudent = asyncHandler(async (req, res) => {
 
   res.status(200).json({ message: 'Student approved.' });
 });
-
 // Reject student
 const rejectStudent = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -121,8 +109,6 @@ const rejectStudent = asyncHandler(async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
   res.status(200).json({ message: 'Student rejected and deleted.' });
 });
-
-
 exports.getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select('-password');
   res.status(200).json(users);
@@ -141,7 +127,7 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
   user.emailValidationTokenExpire = Date.now() + 3600000; // 1 hour
   await user.save({ validateBeforeSave: false });
 
-  const verificationUrl = `${process.env.FRONT_END_URL}/email/verify/${emailToken}`;
+  const verificationUrl = `${process.env.FROND_END_URL}/email/verify/${emailToken}`;
   const message = `
     Hi ${user.fullName || ''},
     Please verify your email by clicking the link below:
@@ -156,7 +142,6 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
 
   res.status(200).json({ message: 'Verification email resent.' });
 });
-
 module.exports = {
    addUser,
    getAllUsers,

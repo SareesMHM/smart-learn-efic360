@@ -10,7 +10,9 @@ import axios from './api'; // Axios instance configured with baseURL
  @returns {Promise<Object>} User data and token
  */
 export const login = async (email, password) => {
-  const response = await axios.post('/login', { email, password });
+  const response = await axios.post('/login', { email, password }, {
+  withCredentials: true // ⬅️ This is required to send/receive cookies
+});
   return response.data; // expected { token, user }
 };
 
@@ -38,7 +40,9 @@ export const fetchCurrentUser = async () => {
 
 export const verifyEmail=async(token)=>{
     try {
-        const {data}=await axios.put(`/email/verify/${token}`)
+        const {data}=await axios.put(`/email/verify/${token}`,{},{
+  withCredentials: true
+})
         return data
     } catch (error) {
         console.log(error)
@@ -47,7 +51,7 @@ export const verifyEmail=async(token)=>{
 }
 export const resendEmail=async()=>{
     try {
-        const {data}=await axios.put(`/email/resend`)   
+        const {data}=await axios.put(`/email/resend`, {},{withCredentials:true})   
         return data   
     } catch (error) {
         console.log(error)
@@ -57,7 +61,7 @@ export const resendEmail=async()=>{
 
 export const changeEmail=async(newEmail)=>{
     try {
-        const {data}=await axios.put(`/email/change`,{'email':newEmail},)
+        const {data}=await axios.put(`/email/change`,{'email':newEmail},{withCredentials:true})
         return data
     } catch (error) {
         console.log(error)

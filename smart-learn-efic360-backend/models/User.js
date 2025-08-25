@@ -24,23 +24,7 @@ const userSchema = new mongoose.Schema({
     required: [true,"please Enter a Password"],
   },
 
-  parentnic: {
-        type: String,
-        unique: [true, 'NIC should be unique'],
-        default: "",
-        validate: {
-            validator: function (value) {
-                const trimmedValue = value.trim();
-                
-                if (/^\d{12}$/.test(trimmedValue) || (trimmedValue.endsWith('v') && trimmedValue.length === 10)) {
-                    return true;
-                }
-    
-                return false;
-            },
-            message: 'Please enter a valid NIC with either 12 digits or a 10-character string ending with "v".'
-        }
-    },
+
   dateOfBirth: {
     type: Date,
   },
@@ -53,28 +37,18 @@ const userSchema = new mongoose.Schema({
        postalCode:{type:Number,required:[true,'Please Enter Your Postal Code']}
    },
  
-  parentName: {
-    type: String,
-    trim: true,
-  },
-  parentPhone: {
-    type: String,
-    trim: true,
-  },
-  gradeId: {
-    type: String,
-    trim: true,
-  },
+
+ 
   profileImage: {
     type: String, // store filename or file path
   },
   
   gender: { type: String },
-  role: {
-    type: String,
-    enum: ['student',  'parent','teacher', 'admin'],
-    default: 'student',
-  },
+//   role: {
+//     type: String,
+//     enum: ['student',  'parent','teacher', 'admin'],
+//     default: 'student',
+//   },
     isApproved: {
     type: Boolean,
     default: false, //  Newly added and placed correctly
@@ -91,8 +65,37 @@ const userSchema = new mongoose.Schema({
     },
    emailValidationToken:String, 
     emailValidationTokenExpire:Date
+}, {
+  discriminatorKey: 'role',   // << this makes "role" the official key
+  collection: 'users'
 });
 
+const studentSchema = new mongoose.Schema(
+  {
+    parentnic: {
+        type: String,
+        unique: [true, 'NIC should be unique'],
+        default: "",
+        validate: {
+            validator: function (value) {
+                const trimmedValue = value.trim();
+                
+                if (/^\d{12}$/.test(trimmedValue) || (trimmedValue.endsWith('v') && trimmedValue.length === 10)) {
+                    return true;
+                }
+    
+                return false;
+            },
+            message: 'Please enter a valid NIC with either 12 digits or a 10-character string ending with "v".'
+        }
+    },
+    parentName: { type: String, required: true },
+    parentPhone: { type: String, required: true },
+    gradeId: { type: String, required: true },
+    
+  },
+  { discriminatorKey: 'role', _id: false }
+); 
 
 
 //create seperate models for each role
@@ -141,69 +144,34 @@ const teacherSchema=new mongoose.Schema({
             message: 'Please enter a valid NIC with either 12 digits or a 10-character string ending with "v".'
         }
     },
-    address:
-   {
-       number:{type:String,required:[true,'Please Enter Your Address no']},
-       street:{type:String,required:[true,'Please Enter Street']},
-       city:{type:String,required:[true,'Please Enter your city']},
-       district:{type:String,required:[true,'Please Enter Your District']},
-       postalCode:{type:Number,required:[true,'Please Enter Your Postal Code']}
-   },
-   fullname:{
-        type:String,
-        required:[true,'Please Enter Your First Name']
-    },
    
-    email:{
-        type:String,
-        required:[true,'Please Enter Your Email'],
-        unique:true,
-        validate:[validator.isEmail,"please enter valid Email"]
-    },
-    profile:{
-        type:String,
-    },
-    password:{
-        type:String,
-        required:[true,"please Enter a Password"],
-        select:false //to hide the password when find method call
-    },
+   
+   
+    
     phone:{
         type:String,
         required:[true,'Please enter phone number'],
         validate:[validator.isMobilePhone,'Please Enter valid phone number']//+94 77 123 3243
     },
-    gender: { type: String },
+   
     subject: { type: String },
     qualifications: { type: String }
 
 
 
 
+},{
+    discriminatorKey: 'role',
+    _id: false, // to disable automatic _id generation for discriminator models
 })
 
 const parentSchema=new mongoose.Schema({
-   fullName: {
-    type: String,
-    required: [true,'Please Enter Your Full Name'],
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: [true,'Please Enter Your Email'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  password: {
-    type: String,
-    required: [true,"please Enter a Password"],
-  },
+ 
   childrenName: { type: String },
   work: { type: String },
   gender: { type: String },
 
-  nic: {
+  parentnic: {
         type: String,
         unique: [true, 'NIC should be unique'],
         default: "",
@@ -220,18 +188,9 @@ const parentSchema=new mongoose.Schema({
             message: 'Please enter a valid NIC with either 12 digits or a 10-character string ending with "v".'
         }
     },
-  dateOfBirth: {
-    type: Date,
-  },
-  address:
-   {
-       number:{type:String,required:[true,'Please Enter Your Address no']},
-       street:{type:String,required:[true,'Please Enter Street']},
-       city:{type:String,required:[true,'Please Enter your city']},
-       district:{type:String,required:[true,'Please Enter Your District']},
-       postalCode:{type:Number,required:[true,'Please Enter Your Postal Code']}
-   },
-  phone: {
+  
+ 
+  parentPhone: {
     type: String,
     trim: true,
   },
@@ -240,8 +199,10 @@ const parentSchema=new mongoose.Schema({
     type: String, // store filename or file path
   }
 
+},{
+    discriminatorKey: 'role',
+    _id: false, // to disable automatic _id generation for discriminator models
 })
-
 
 // Hash password before saving
 userSchema.pre('save',async function (next){
@@ -257,12 +218,13 @@ userSchema.pre('save',async function (next){
     }
 })
 
-
 userSchema.methods.getJwtToken= function(){
     return jwt.sign({id:this.id,role:this.role,email:this.email},process.env.JWT_SECRET_KEY,{
         expiresIn:process.env.JWT_EXPIRES_TIME
     })
 }
+
+
 
 userSchema.methods.isValidPassword= async function(enteredPassword)
 {
@@ -298,5 +260,21 @@ userSchema.methods.getEmailValidationToken=function(){
 
 const User = mongoose.model('User', userSchema);
 
+const Student = User.discriminator(
+  'Student',             // model name (can stay capitalized)
+  studentSchema,
+  'student'              // value stored in discriminatorKey field
+);
 
-module.exports = User;
+const Teacher = User.discriminator('Teacher', teacherSchema, 'teacher');
+const Parent  = User.discriminator('Parent', parentSchema, 'parent');
+const Admin   = User.discriminator('Admin', adminSchema, 'admin');
+
+
+module.exports = {
+  User,
+  Student,
+  Admin,
+  Teacher,
+  Parent
+};

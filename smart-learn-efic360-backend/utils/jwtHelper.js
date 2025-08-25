@@ -1,4 +1,4 @@
-const User = require("../models/User")
+const {User} = require("../models/User")
 
 
 const sendToken=async(user,statusCode,res,additional=null)=>{
@@ -10,7 +10,9 @@ const sendToken=async(user,statusCode,res,additional=null)=>{
     //create cookie options
     const option={
         expires:new Date(Date.now()+process.env.COOKIE_EXPIRES_TIME*24*60*60*1000),
-        httpOnly:true
+        httpOnly:true,
+        sameSite: 'Lax', // or 'None' for cross-origin
+        secure: false 
     }    
       const USER=await User.findById({_id:user.id}).lean()
     

@@ -7,60 +7,60 @@ import icon from '../images/efic-icon-512.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { changeEmail, resendEmail } from '../services/authService';
+import Loader from '../components/Loader';
+import { useMutation } from '@tanstack/react-query';
 
 
 const SendVerification = () => {
   const [show, setShow] = useState(false);
   const navigate=useNavigate()
   const location =useLocation();
- const {user}=location.state
+  const {user}=location.state;
   
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+
+const resendEmailMutation = useMutation({
+  mutationFn: resendEmail,
+  onSuccess: (data) => toast.success(data.message),
+  onError: () => toast.error('Failed to resend email.')
+});
+
+const changeEmailMutation = useMutation({
+  mutationFn: () => changeEmail(email),
+  onSuccess: (data) => {
+    toast.success(data.message);
+    setShow(false);
+  },
+  onError: () => toast.error('Failed to change email.')
+});
 
   useEffect(()=>{
     if(user?.isvalidEmail)
     {      
        return navigate('/')
     }
-    if(message) {
-      toast.success(message, {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    }
-    if(error){
-      toast.error(error, {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-    }
-  },[message,error])
+  },[user])
 
  
 
  const handleResendLink = async () => {
-  try {
-    const data = await resendEmail();
-    setMessage(data.message);
-  } catch (error) {
-    setMessage('Failed to resend email.');
-  }
+  
+    resendEmailMutation.mutate()
+  
 };
 
 const handleChangeEmail = async () => {
-  try {
-    const data = await changeEmail(email);
-    setMessage(data.message);
+    changeEmailMutation.mutate(email)
     setShow(false);
-  } catch (error) {
-    setMessage('Failed to change email.');
-  }
+  
 };
 
   return (
+  resendEmailMutation.isPending || changeEmailMutation.isPending?
+  <Loader/>:    
     <>
     <center>
     <div className='container'>
