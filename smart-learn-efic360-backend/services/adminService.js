@@ -16,6 +16,22 @@ const getUsersByRole = async (role) => {
   return response.data.users;
 };
 
+const getAllUsers = async ({ role = 'all', q = '', page = 1, limit = 25, sort = '-createdAt', isApproved } = {}) => {
+  const params = toParams({ role, q, page, limit, sort, isApproved });
+  const res = await API.get('/users', { params });
+  return res.data;
+};
+
+const editUser = async (id, payload) => {
+  const res = await API.put(`/users/${id}`, payload);
+  return res.data;
+};
+const deleteUser = async (id) => {
+  const res = await API.delete(`/users/${id}`);
+  return res.data;
+};
+
+
 const approveStudent = async (id) => {
   const response = await axios.put(`${API_BASE}/students/${id}/approve`);
   return response.data;
@@ -33,7 +49,10 @@ const resendVerificationEmail = async (id) => {
 
 export default {
     addUser,
+  getAllUsers,
   getUsersByRole,
+  editUser,
+  deleteUser,
   approveStudent,
   rejectStudent,
   resendVerificationEmail,

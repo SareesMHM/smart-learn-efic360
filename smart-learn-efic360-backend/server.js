@@ -39,6 +39,7 @@ app.use('/uploads', express.static(path.join(__dirname,'uploads') ) )
 app.use('/api', require('./routes/authRoutes'));
 app.use('/api/parent', require('./routes/parentRoutes'));
 app.use('/api/grades', require('./routes/gradeRoutes'));
+app.use('/api', require('./routes/materialRoutes'));
  // if needed for fallback
 
 // Optional Protected Routes

@@ -1,102 +1,40 @@
-/* src/styles/CourseManager.scss */
+.content-manager { padding: 12px; }
+.cm-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.cm-head h1 { margin:0; font-size:24px; font-weight:800; }
+.cm-actions { display:flex; gap:8px; }
+.cm-search { width:280px; max-width:100%; padding:.55rem .7rem; border:1px solid #e6e8ee; border-radius:10px; }
 
-.course-manager {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', sans-serif;
+.cm-toast { margin-bottom:12px; padding:10px 12px; border:1px solid #e6e8ee; border-radius:10px; background:#f8fffd; }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 24px;
-    color: #2c3e50;
-  }
-
-  form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 24px;
-
-    input,
-    select {
-      flex: 1;
-      padding: 10px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    button {
-      padding: 10px 16px;
-      background-color: #4caf50;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-
-      &:hover {
-        background-color: #388e3c;
-      }
-    }
-  }
-
-  .search-bar {
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-
-    li {
-      background: #f9f9f9;
-      margin-bottom: 12px;
-      padding: 14px;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      strong {
-        font-size: 1.05rem;
-        color: #333;
-      }
-
-      button {
-        margin-left: 10px;
-        padding: 6px 10px;
-        font-size: 0.9rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-
-        &:first-of-type {
-          background-color: #2196f3;
-          color: white;
-        }
-
-        &:last-of-type {
-          background-color: #e53935;
-          color: white;
-        }
-      }
-    }
-  }
-
-  p {
-    text-align: center;
-    color: #388e3c;
-    font-weight: 500;
-  }
+.cm-form { background:#fff; border:1px solid #e6e8ee; border-radius:12px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+.field { grid-column: span 6; display:grid; gap:6px; }
+.field.span-2 { grid-column: span 12; }
+.field label { font-weight:700; font-size:.9rem; }
+.field .req { color:#e74c3c; margin-left:4px; }
+.field input[type="text"], .field input[type="date"], .field input[type="number"], .field input[type="file"], .field textarea, .field select {
+  width:100%; padding:.6rem .7rem; border:1px solid #e6e8ee; border-radius:10px;
 }
+.card { border:1px solid #e6e8ee; border-radius:12px; padding:12px; background:#fff; }
+.toggle { display:flex; gap:16px; margin-bottom:10px; }
+
+.options .option { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.radio { display:inline-flex; align-items:center; gap:6px; font-size:.9rem; }
+
+.actions { display:flex; gap:10px; margin-top:12px; }
+.btn { border:1px solid #e6e8ee; background:#fff; border-radius:10px; padding:.55rem .8rem; font-weight:700; cursor:pointer; }
+.btn.primary { background:#00ab9f; color:#fff; border-color:#00ab9f; }
+.btn.ghost { background:transparent; }
+.btn.danger { background:#e74c3c; color:#fff; border-color:#e74c3c; }
+.btn.sm { padding:.45rem .7rem; font-size:.9rem; }
+.btn.xs { padding:.3rem .5rem; font-size:.8rem; }
+
+.cm-subtitle { margin:18px 0 8px; }
+.cm-list { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+.cm-item { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:12px; border:1px solid #e6e8ee; border-radius:12px; background:#fff; }
+.cm-title { margin:0 0 6px; font-size:18px; font-weight:800; }
+.cm-desc, .muted { color:#6b7280; margin:.2rem 0; }
+.type-badge { display:inline-block; padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:800; color:#0b1320; background:#e6fffa; margin-bottom:6px; }
+.type-badge.t-quiz { background:#eef2ff; }
+.type-badge.t-chatbot { background:#fff7e6; }
+.cm-links { display:flex; gap:8px; align-items:center; }

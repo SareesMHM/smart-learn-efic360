@@ -1,58 +1,81 @@
-/* ========================================================================== 
-    Admin Dashboard SCSS 
-========================================================================== */
-
-/* Variables */
-$primary-color: #00ab9f;
-$secondary-color: #34495e;
-$bg-light: #f7f7ff;
-$text-dark: #333;
-$white: #fff;
-
-/* General Styles */
-body {
-  background-color: $bg-light;
-  font-family: 'Arial', sans-serif;
-  color: $text-dark;
-  margin: 0;
+/* Layout tokens (ensure these exist once) */
+:root {
+  --topbar-h: 65px;
+  --sidebar-w: 260px;
+  --footer-h: 52px;
 }
 
-#app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* Header offset + sidebar docking (matches previous messages) */
+html, body, #root { height: 100%; }
+body { padding-top: var(--topbar-h); }   /* keeps content below header */
+
+#sidebar { top: var(--topbar-h); height: calc(100vh - var(--topbar-h)); }
+
+.app-main {
+  margin-left: var(--sidebar-w);
+  padding: 24px;
+  min-height: calc(100dvh - var(--topbar-h) - var(--footer-h));
+  background: #fff;
+}
+@media (max-width: 991px) { .app-main { margin-left: 0; } }
+
+/* Page head */
+.page-head {
+  margin-bottom: 18px;
+  h1 { margin: 0 0 6px; font-size: clamp(20px, 2.3vw, 26px); font-weight: 800; }
+  .muted { color: #6b7280; margin: 0; }
 }
 
+/* Dashboard tiles */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
 
+  @media (max-width: 1200px) { & > * { grid-column: span 6; } }
+  @media (max-width: 768px)  { & > * { grid-column: span 12; } }
+}
 
+.card-tile {
+  grid-column: span 4; /* 3 per row on desktop */
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 14px;
 
-/* Main Content */
-.dashboard-container {
-  margin-left: 250px;
-  padding: 30px;
+  background: #fff;
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  padding: 16px;
+  text-decoration: none;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
 
-  .dashboard-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 30px;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,.12);
+    border-color: #00ab9f;
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,171,159,.35);
   }
 
-  .card {
-    background-color: $white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+  .tile-icon {
+    display: grid; place-items: center;
+    .text-primary { color: #00ab9f; }
+  }
 
-    .card-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
+  .tile-title {
+    margin: 0 0 6px;
+    font-size: 18px; font-weight: 800; line-height: 1.2;
+  }
 
-    .card-content {
-      font-size: 14px;
-    }
+  .tile-link {
+    font-weight: 700; font-size: 14px; color: #0b5fff; /* blue link style */
   }
 }
 
+/* If you keep legacy Bootstrap "panel" classes somewhere else, this prevents clashes */
+.panel, .panel-white, .no-radius { all: unset; }

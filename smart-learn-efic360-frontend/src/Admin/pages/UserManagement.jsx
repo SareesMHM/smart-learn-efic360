@@ -1,15 +1,17 @@
 // AdminUserManager.jsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import adminService from '../services/adminService';
-
-// Optional: put this in an .env and read in adminService
-// const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 const AdminUserManager = () => {
   const [role, setRole] = useState('all');
+  const [q, setQ] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
 
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
+  const [perPage, setPerPage] = useState(limit);
 
   const [selectedParent, setSelectedParent] = useState(null);
   const [children, setChildren] = useState([]);
@@ -21,99 +23,69 @@ const AdminUserManager = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
-
-  // -------------------------
-  // Fetch users when role changes
-  // -------------------------
-  const fetchUsers = async () => {
+  // -------- Fetch (server-side pagination) --------
+  const load = async (opts = {}) => {
     setLoading(true);
     setError('');
     try {
-      const data =
-        role === 'all'
-          ? await adminService.getAllUsers()
-          : await adminService.getUsersByRole(role);
-
-      // In case your service returns {data: [...]}
-      const list = Array.isArray(data) ? data : (data?.data ?? []);
-      setUsers(list);
-      setCurrentPage(1);
-    } catch (err) {
-      console.error('Error fetching users:', err);
-      setError(err?.response?.data?.message || 'Failed to fetch users.');
+      const params = {
+        role,
+        q,
+        page,
+        limit,
+        sort: '-createdAt',
+        ...opts,
+      };
+      const res = await adminService.getAllUsers(params); // { total, page, pages, perPage, data }
+      setRows(res.data || []);
+      setTotal(res.total || 0);
+      setPages(res.pages || 1);
+      setPerPage(res.perPage || limit);
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Failed to fetch users.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Load on role/page change
   useEffect(() => {
-    fetchUsers();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
+  }, [role, page]);
 
-  // -------------------------
-  // Search (debounced)
-  // -------------------------
-  const [debouncedTerm, setDebouncedTerm] = useState('');
+  // Debounce search -> reset to page 1 then load
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedTerm(searchTerm.trim()), 250);
+    const t = setTimeout(() => {
+      setPage(1);
+      load({ page: 1 });
+    }, 300);
     return () => clearTimeout(t);
-  }, [searchTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
-  const filteredUsers = useMemo(() => {
-    if (!debouncedTerm) return users;
-    const q = debouncedTerm.toLowerCase();
-    return users.filter((u) => {
-      const name = (u.fullName || '').toLowerCase();
-      const email = (u.email || '').toLowerCase();
-      const nic = (u.nic || '').toLowerCase(); // (fix) case-insensitive NIC search
-      return name.includes(q) || email.includes(q) || nic.includes(q);
-    });
-  }, [users, debouncedTerm]);
-
-  // -------------------------
-  // Current page slice
-  // -------------------------
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage));
-  const pageSafe = Math.min(currentPage, totalPages);
-  const indexOfLast = pageSafe * usersPerPage;
-  const indexOfFirst = indexOfLast - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirst, indexOfLast);
-
-  useEffect(() => {
-    // if filtering shrinks page count, snap back to last valid page
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [totalPages, currentPage]);
-
-  // -------------------------
-  // CRUD & actions
-  // -------------------------
+  // -------- CRUD & actions --------
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await adminService.deleteUser(id);
       setMessage('User deleted.');
-      await fetchUsers();
+      load();
     } catch (e) {
       setError(e?.response?.data?.message || 'Failed to delete user.');
     }
   };
 
-  const handleEdit = (user) => {
-    setEditingUser({ ...user }); // clone
-  };
+  const handleEdit = (user) => setEditingUser({ ...user });
 
   const handleUpdate = async () => {
     if (!editingUser?._id) return;
     setSaving(true);
     try {
-      await adminService.editUser(editingUser._id, editingUser);
+      await adminService.editUser(editingUser._id, { fullName: editingUser.fullName });
       setMessage('User updated.');
       setEditingUser(null);
-      await fetchUsers();
+      load();
     } catch (e) {
       setError(e?.response?.data?.message || 'Failed to update user.');
     } finally {
@@ -125,7 +97,7 @@ const AdminUserManager = () => {
     try {
       await adminService.approveStudent(id);
       setMessage('User approved.');
-      await fetchUsers();
+      load();
     } catch (e) {
       setError(e?.response?.data?.message || 'Approval failed.');
     }
@@ -135,7 +107,7 @@ const AdminUserManager = () => {
     try {
       await adminService.rejectStudent(id);
       setMessage('User rejected.');
-      await fetchUsers();
+      load();
     } catch (e) {
       setError(e?.response?.data?.message || 'Rejection failed.');
     }
@@ -150,42 +122,51 @@ const AdminUserManager = () => {
     }
   };
 
-  // -------------------------
-  // Parent → Children (by NIC)
-  // -------------------------
+  // -------- Parent → Children (by NIC, using API search) --------
   const handleSearchParent = async () => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) {
+    const nicQ = q.trim();
+    if (!nicQ) {
       setSelectedParent(null);
       setChildren([]);
       return;
     }
-
-    // find parent in current list (or fetch all parents if needed)
-    const parent = users.find((u) => (u.nic || '').toLowerCase() === q && u.role === 'parent');
-
-    if (!parent) {
-      setSelectedParent(null);
-      setChildren([]);
-      setMessage('No parent found for that NIC.');
-      return;
-    }
-
     try {
+      // Find parent by NIC via server search (restrict role=parent)
+      const parentsRes = await adminService.getAllUsers({
+        role: 'parent',
+        q: nicQ,
+        page: 1,
+        limit: 5,
+      });
+      const parent = (parentsRes.data || []).find(
+        (p) => (p.nic || '').toLowerCase() === nicQ.toLowerCase()
+      );
+      if (!parent) {
+        setSelectedParent(null);
+        setChildren([]);
+        setMessage('No parent found for that NIC.');
+        return;
+      }
       setSelectedParent(parent);
-      const studentsData = await adminService.getUsersByRole('student');
-      const allStudents = Array.isArray(studentsData) ? studentsData : (studentsData?.data ?? []);
-      const related = allStudents.filter((std) => std.parentPhone && std.parentPhone === parent.phone);
-      setChildren(related);
-    } catch (e) {
+
+      // Find related students by parentPhone (server search hits phone field)
+      const studentsRes = await adminService.getAllUsers({
+        role: 'student',
+        q: parent.phone || '',
+        page: 1,
+        limit: 100,
+      });
+      const kids = (studentsRes.data || []).filter(
+        (s) => s.parentPhone && s.parentPhone === parent.phone
+      );
+      setChildren(kids);
+    } catch {
       setError('Failed to fetch related students.');
       setChildren([]);
     }
   };
 
-  // -------------------------
-  // UI
-  // -------------------------
+  // -------- UI --------
   return (
     <div className="admin-user-manager">
       <h2>User Management Panel</h2>
@@ -196,22 +177,29 @@ const AdminUserManager = () => {
       <div className="toolbar">
         <label>
           Role:&nbsp;
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
+          <select
+            value={role}
+            onChange={(e) => {
+              setRole(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All</option>
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
             <option value="parent">Parent</option>
+            <option value="admin">Admin</option>
           </select>
         </label>
 
         <input
           type="text"
-          placeholder="Search by name, email, or NIC"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search by name, email, NIC or phone"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
         />
 
-        <button onClick={handleSearchParent} disabled={!searchTerm.trim() || loading}>
+        <button onClick={handleSearchParent} disabled={!q.trim() || loading}>
           Search Parent NIC
         </button>
       </div>
@@ -233,7 +221,7 @@ const AdminUserManager = () => {
 
       {loading ? (
         <p>Loading users…</p>
-      ) : currentUsers.length === 0 ? (
+      ) : rows.length === 0 ? (
         <p>No users found.</p>
       ) : (
         <table className="user-table">
@@ -248,7 +236,7 @@ const AdminUserManager = () => {
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map((user) => {
+            {rows.map((user) => {
               const isEditing = editingUser?._id === user._id;
               return (
                 <tr key={user._id}>
@@ -280,7 +268,7 @@ const AdminUserManager = () => {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => handleEdit(user)}>Edit</button>
+                        <button onClick={() => setEditingUser(user)}>Edit</button>
                         <button onClick={() => handleDelete(user._id)}>Delete</button>
 
                         {user.role === 'student' && !user.isApproved && (
@@ -302,31 +290,29 @@ const AdminUserManager = () => {
         </table>
       )}
 
-      {totalPages > 1 && (
+      {pages > 1 && (
         <div className="pagination">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={pageSafe === 1}
-          >
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
             ‹ Prev
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
-              className={pageSafe === n ? 'active' : ''}
-              onClick={() => setCurrentPage(n)}
+              className={page === n ? 'active' : ''}
+              onClick={() => setPage(n)}
             >
               {n}
             </button>
           ))}
 
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={pageSafe === totalPages}
-          >
+          <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}>
             Next ›
           </button>
+
+          <span style={{ marginLeft: 8 }}>
+            Showing {rows.length} of {total} (page {page}/{pages}, {perPage}/page)
+          </span>
         </div>
       )}
     </div>

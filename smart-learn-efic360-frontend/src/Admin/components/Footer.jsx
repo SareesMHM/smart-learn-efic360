@@ -1,16 +1,29 @@
-
-
-
 const Footer = () => {
+  const year = new Date().getFullYear();
+
+  const handleGoTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
   return (
-    <footer className="footer">
+    <footer className="footer" role="contentinfo">
       <div className="footer-inner">
-        <div className="pull-left">
-          <span className="text-bold text-uppercase">Smart Learn EFIC 360</span>
+        <div className="footer-left">
+          <span className="brand">
+            <strong>Smart Learn EFIC 360</strong>
+          </span>
+          <span className="sep" aria-hidden="true">•</span>
+          <span className="copy">© {year}</span>
         </div>
-        <div className="pull-right go-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <i className="ti-angle-up"></i>
-        </div>
+
+        <button
+          type="button"
+          className="go-top"
+          onClick={handleGoTop}
+          aria-label="Back to top"
+          title="Back to top"
+        >
+          <i className="ti-angle-up" aria-hidden="true" />
+        </button>
       </div>
     </footer>
   );

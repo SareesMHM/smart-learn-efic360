@@ -1,112 +1,64 @@
+import { NavLink } from "react-router-dom";
 
-import { Link } from 'react-router-dom';
- 
+const links = [
+  { to: "/Admin/AdminDashboard", icon: "ti-home", label: "Admin Dashboard" },
+  { to: "/Admin/AdminRegisterUserForm", icon: "ti-pencil-alt", label: "Add User" },
+  { to: "/Admin/CourseManager", icon: "ti-book", label: "Add Course" },
+  { to: "/profile", icon: "ti-user", label: "Profile" },
+  { to: "/notifications", icon: "ti-bell", label: "Notifications" },
+  { to: "/contact", icon: "ti-envelope", label: "Contact Us" },
+  { to: "/logout", icon: "ti-power-off", label: "Logout" },
+];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
+  // Close on link click (useful on mobile)
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+    // If you're toggling with a CSS class on #sidebar:
+    // document.getElementById("sidebar")?.classList.remove("open");
+    // document.querySelector(".sidebar-backdrop")?.classList.remove("show");
+  };
+
   return (
-    <div className="sidebar app-aside" id="sidebar">
-      <div className="sidebar-container perfect-scrollbar">
-        <nav>
-          <div className="navbar-title">
-            <i className="ti-menu" style={{ marginRight: '0px' }}></i>
-            <span>Main Navigation</span>
-          </div>
+    <>
+      {/* Backdrop for mobile (toggle .show externally with your header button) */}
+      <div
+        className={`sidebar-backdrop ${isOpen ? "show" : ""}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div className={`sidebar app-aside ${isOpen ? "open" : ""}`} id="sidebar" role="navigation" aria-label="Main Navigation">
+        <div className="sidebar-container perfect-scrollbar">
+          <nav>
+            <div className="navbar-title" aria-hidden="true">
+              <i className="ti-menu" style={{ marginRight: 0 }} />
+              <span>Main Navigation</span>
+            </div>
 
-          <ul className="main-navigation-menu">
-            <li>
-              <Link to="/Admin/AdminDashboard">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-home"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Admin Dashboard </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/Admin/AdminRegisterUserForm">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-pencil-alt"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Add User </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/Admin/CourseManager">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-book"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Add Course </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/profile">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-user"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Profile </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/notifications">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-bell"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Notifications </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/contact">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-envelope"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Contact Us </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/logout">
-                <div className="item-content">
-                  <div className="item-media">
-                    <i className="ti-power-off"></i>
-                  </div>
-                  <div className="item-inner">
-                    <span className="title"> Logout </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          </ul>
-        </nav>
+            <ul className="main-navigation-menu">
+              {links.map(({ to, icon, label }) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    className={({ isActive }) => (isActive ? "active" : "")}
+                    onClick={handleLinkClick}
+                  >
+                    <div className="item-content">
+                      <div className="item-media">
+                        <i className={icon} />
+                      </div>
+                      <div className="item-inner">
+                        <span className="title">{label}</span>
+                      </div>
+                    </div>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
