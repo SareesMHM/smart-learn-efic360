@@ -27,6 +27,15 @@ import AdminDashboard from './Admin/pages/AdminDashboard';
 import UserManagement from './Admin/pages/UserManagement';
 import ParentDashboard from './Parent/pages/ParentDashboard';
 import AccessLogViewer from './Admin/pages/AccessLogViewer';
+
+import AssignmentSubmissions from './Admin/pages/AssignmentSubmissions';
+import QuizResults from './Admin/pages/QuizResults';
+import QuizPlayer from './pages/QuizPlayer';
+import StudentLibrary from './pages/StudentLibrary';
+
+
+
+
 // import ApprovalsPage from './Admin/pages/ApprovalsPage';
 
 
@@ -44,6 +53,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ParentStudentDetails from './Parent/pages/ParentStudentDetails';
 import SendVerification from './pages/SendVerification';
 import VerifyingEmail from './pages/VerifyingEmail';
+
 // src/index.js or src/App.js
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -79,6 +89,8 @@ function App() {
           
 
           <Route path="/Admin/Verification" element={<Verification />} />
+          <Route path="/Admin/AssignmentSubmissions" element={<AssignmentSubmissions />} />
+          <Route path="/Admin/QuizResults" element={<QuizResults />} />
           <Route path="/Admin/VerificationCenter" element={<VerificationCenter />} />
           <Route path="/OfflineLearning" element={<OfflineLearning />} />
           <Route path="/NotificationsPage" element={<NotificationsPage />} />
@@ -90,6 +102,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
+        <Route path="/StudentLibrary" element={<StudentLibrary />} />
+        <Route path="/QuizPlayer" element={<QuizPlayer />} />
         <Route path="/Admin/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/Admin/AdminRegisterUserForm" element={<AdminRegisterUserForm />} />
         <Route path="/Admin/ContentManager" element={<ContentManager />} />

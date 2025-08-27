@@ -16,6 +16,8 @@ const FEATURES = [
   { title: "VerificationCenter",    icon: "fa-shield-check", path: "/Admin/VerificationCenter" },
   { title: "Notifications",         icon: "fa-bell",         path: "/Admin/notifications" },
   { title: "System Settings",       icon: "fa-cogs",         path: "/Admin/settings" },
+  { title: "AssignmentSubmissions",       icon: "fa-cogs",         path: "/Admin/AssignmentSubmissions" },
+  { title: "QuizResults",       icon: "fa-cogs",         path: "/Admin/QuizResults" },
 ];
 
 function AdminDashboard() {

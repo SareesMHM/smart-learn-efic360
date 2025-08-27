@@ -12,6 +12,7 @@ const bodyParser=require('body-parser')
 const path=require("path")
 const PORT = process.env.PORT;
 
+
 // Connect to MongoDB
 connectDB();
 
@@ -32,8 +33,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname,'uploads') ) )
 
-// Public Routes
-// app.use('/auth', require('./routes/authRoutes'));
+ // app.use('/auth', require('./routes/authRoutes'));
 
 // API Routes
 app.use('/api', require('./routes/authRoutes'));

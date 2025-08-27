@@ -36,3 +36,16 @@ exports.getUserSessions = asyncHandler(async (req, res) => {
   
   res.status(200).json(sessions);
 });
+
+// controllers/materialController.js
+exports.getMaterialById = async (req, res) => {
+  try {
+    const { Content } = require("../models/materialModel");
+    const doc = await Content.findById(req.params.id);
+    if (!doc) return res.status(404).json({ message: "Not found" });
+    res.json(toClient(doc));
+  } catch (e) {
+    res.status(500).json({ message: "Failed to fetch material" });
+  }
+};
+

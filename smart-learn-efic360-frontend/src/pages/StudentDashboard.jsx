@@ -95,9 +95,9 @@ const StudentDashboard = () => {
                       <i className="fa fa-square fa-stack-2x text-primary"></i>
                       <i className="fa fa-paperclip fa-stack-1x fa-inverse"></i>
                     </span>
-                    <h2 className="StepTitle">My Bookings</h2>
+                    <h2 className="StepTitle">StudentLibrary</h2>
                     <p className="cl-effect-1">
-                      <Link to="/appointment-history">View Booking History</Link>
+                      <Link to="/StudentLibrary">View StudentLibrary</Link>
                     </p>
                   </div>
                 </div>
@@ -145,7 +145,7 @@ const StudentDashboard = () => {
                     </span>
                     <h2 className="StepTitle">Adaptive Quizzes</h2>
                     <p className="links cl-effect-1">
-                      <Link to="/AdaptiveQuizPage">Start Quiz</Link>
+                      <Link to="/QuizPlayer">Start Quiz</Link>
                     </p>
                   </div>
                 </div>

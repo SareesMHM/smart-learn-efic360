@@ -1,12 +1,13 @@
-// AdminUserManager.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import adminService from '../services/adminService';
+
+const defaultLimit = 10;
 
 const AdminUserManager = () => {
   const [role, setRole] = useState('all');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(defaultLimit);
 
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -16,17 +17,25 @@ const AdminUserManager = () => {
   const [selectedParent, setSelectedParent] = useState(null);
   const [children, setChildren] = useState([]);
 
-  const [editingUser, setEditingUser] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState({}); // { [id]: { ...draft fields } }
+  const [savingMap, setSavingMap] = useState({}); // { [id]: boolean }
+
+  const [selectedIds, setSelectedIds] = useState(new Set()); // for bulk actions
+  const [selectAll, setSelectAll] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // -------- Fetch (server-side pagination) --------
+  const clearToasts = () => {
+    setMessage('');
+    setError('');
+  };
+
+  // ---------- Fetch ----------
   const load = async (opts = {}) => {
     setLoading(true);
-    setError('');
+    clearToasts();
     try {
       const params = {
         role,
@@ -41,6 +50,8 @@ const AdminUserManager = () => {
       setTotal(res.total || 0);
       setPages(res.pages || 1);
       setPerPage(res.perPage || limit);
+      setSelectedIds(new Set());
+      setSelectAll(false);
     } catch (e) {
       setError(e?.response?.data?.message || 'Failed to fetch users.');
     } finally {
@@ -48,25 +59,71 @@ const AdminUserManager = () => {
     }
   };
 
-  // Load on role/page change
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, page]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [role, page]);
 
-  // Debounce search -> reset to page 1 then load
   useEffect(() => {
     const t = setTimeout(() => {
       setPage(1);
       load({ page: 1 });
-    }, 300);
+    }, 350);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [q]);
 
-  // -------- CRUD & actions --------
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+  // ---------- Edit helpers ----------
+  const startEdit = (user) => {
+    setEditing((prev) => ({
+      ...prev,
+      [user._id]: {
+        fullName: user.fullName || '',
+        email: user.email || '',
+        nic: user.nic || '',
+        role: user.role || 'student',
+        isApproved: !!user.isApproved,
+        phone: user.phone || '',
+        gradeId: user.gradeId || '',
+      },
+    }));
+  };
+
+  const cancelEdit = (id) => {
+    setEditing((prev) => {
+      const clone = { ...prev };
+      delete clone[id];
+      return clone;
+    });
+  };
+
+  const onEditField = (id, key, value) => {
+    setEditing((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [key]: value,
+      },
+    }));
+  };
+
+  const saveOne = async (id) => {
+    const payload = editing[id];
+    if (!payload) return;
+    setSavingMap((m) => ({ ...m, [id]: true }));
+    clearToasts();
+    try {
+      await adminService.editUser(id, payload);
+      setMessage('User updated.');
+      cancelEdit(id);
+      load(); // refresh current page
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Failed to update user.');
+    } finally {
+      setSavingMap((m) => ({ ...m, [id]: false }));
+    }
+  };
+
+  const removeOne = async (id) => {
+    if (!window.confirm('Delete this user?')) return;
+    clearToasts();
     try {
       await adminService.deleteUser(id);
       setMessage('User deleted.');
@@ -76,24 +133,8 @@ const AdminUserManager = () => {
     }
   };
 
-  const handleEdit = (user) => setEditingUser({ ...user });
-
-  const handleUpdate = async () => {
-    if (!editingUser?._id) return;
-    setSaving(true);
-    try {
-      await adminService.editUser(editingUser._id, { fullName: editingUser.fullName });
-      setMessage('User updated.');
-      setEditingUser(null);
-      load();
-    } catch (e) {
-      setError(e?.response?.data?.message || 'Failed to update user.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const approveUser = async (id) => {
+  const approveOne = async (id) => {
+    clearToasts();
     try {
       await adminService.approveStudent(id);
       setMessage('User approved.');
@@ -103,7 +144,8 @@ const AdminUserManager = () => {
     }
   };
 
-  const rejectUser = async (id) => {
+  const rejectOne = async (id) => {
+    clearToasts();
     try {
       await adminService.rejectStudent(id);
       setMessage('User rejected.');
@@ -114,6 +156,7 @@ const AdminUserManager = () => {
   };
 
   const resendEmail = async (id) => {
+    clearToasts();
     try {
       await adminService.resendVerificationEmail(id);
       setMessage('Verification email resent.');
@@ -122,8 +165,77 @@ const AdminUserManager = () => {
     }
   };
 
-  // -------- Parent → Children (by NIC, using API search) --------
+  // ---------- Bulk actions ----------
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedIds(new Set());
+      setSelectAll(false);
+    } else {
+      setSelectedIds(new Set(rows.map((r) => r._id)));
+      setSelectAll(true);
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((curr) => {
+      const next = new Set(curr);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectedCount = selectedIds.size;
+  const selectedList = useMemo(() => Array.from(selectedIds), [selectedIds]);
+
+  const bulkApprove = async () => {
+    if (!selectedCount) return;
+    if (!window.confirm(`Approve ${selectedCount} selected user(s)?`)) return;
+    clearToasts();
+    try {
+      for (const id of selectedList) {
+        await adminService.approveStudent(id);
+      }
+      setMessage(`Approved ${selectedCount} user(s).`);
+      load();
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Bulk approve failed.');
+    }
+  };
+
+  const bulkReject = async () => {
+    if (!selectedCount) return;
+    if (!window.confirm(`Reject ${selectedCount} selected user(s)?`)) return;
+    clearToasts();
+    try {
+      for (const id of selectedList) {
+        await adminService.rejectStudent(id);
+      }
+      setMessage(`Rejected ${selectedCount} user(s).`);
+      load();
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Bulk reject failed.');
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (!selectedCount) return;
+    if (!window.confirm(`Delete ${selectedCount} selected user(s)?`)) return;
+    clearToasts();
+    try {
+      for (const id of selectedList) {
+        await adminService.deleteUser(id);
+      }
+      setMessage(`Deleted ${selectedCount} user(s).`);
+      load();
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Bulk delete failed.');
+    }
+  };
+
+  // ---------- Parent -> Children by NIC ----------
   const handleSearchParent = async () => {
+    clearToasts();
     const nicQ = q.trim();
     if (!nicQ) {
       setSelectedParent(null);
@@ -131,7 +243,6 @@ const AdminUserManager = () => {
       return;
     }
     try {
-      // Find parent by NIC via server search (restrict role=parent)
       const parentsRes = await adminService.getAllUsers({
         role: 'parent',
         q: nicQ,
@@ -149,7 +260,6 @@ const AdminUserManager = () => {
       }
       setSelectedParent(parent);
 
-      // Find related students by parentPhone (server search hits phone field)
       const studentsRes = await adminService.getAllUsers({
         role: 'student',
         q: parent.phone || '',
@@ -166,15 +276,15 @@ const AdminUserManager = () => {
     }
   };
 
-  // -------- UI --------
+  // ---------- UI ----------
   return (
     <div className="admin-user-manager">
       <h2>User Management Panel</h2>
 
-      {!!message && <div className="toast success">{message}</div>}
-      {!!error && <div className="toast error">{error}</div>}
+      {message && <div className="toast success">{message}</div>}
+      {error && <div className="toast error">{error}</div>}
 
-      <div className="toolbar">
+      <div className="toolbar" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label>
           Role:&nbsp;
           <select
@@ -197,23 +307,29 @@ const AdminUserManager = () => {
           placeholder="Search by name, email, NIC or phone"
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          style={{ minWidth: 280 }}
         />
 
         <button onClick={handleSearchParent} disabled={!q.trim() || loading}>
           Search Parent NIC
         </button>
+
+        {/* Bulk actions */}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button onClick={bulkApprove} disabled={!selectedCount}>Bulk Approve</button>
+          <button onClick={bulkReject} disabled={!selectedCount}>Bulk Reject</button>
+          <button onClick={bulkDelete} disabled={!selectedCount}>Bulk Delete</button>
+        </div>
       </div>
 
       {selectedParent && (
-        <div className="parent-card">
+        <div className="parent-card" style={{ marginTop: 12 }}>
           <h4>Parent: {selectedParent.fullName}</h4>
           <p>Phone: {selectedParent.phone}</p>
           <p>Children: {children.length}</p>
           {children.map((c) => (
             <div key={c._id}>
-              <p>
-                {c.fullName} — Grade {c.gradeId}
-              </p>
+              <p>{c.fullName} — Grade {c.gradeId}</p>
             </div>
           ))}
         </div>
@@ -224,59 +340,153 @@ const AdminUserManager = () => {
       ) : rows.length === 0 ? (
         <p>No users found.</p>
       ) : (
-        <table className="user-table">
+        <table className="user-table" style={{ width: '100%', marginTop: 12 }}>
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={toggleSelectAll}
+                  title="Select all on this page"
+                />
+              </th>
               <th>Full Name</th>
               <th>Email</th>
               <th>NIC</th>
+              <th>Phone</th>
+              <th>Grade</th>
               <th>Role</th>
+              <th>Approved</th>
               <th>Status</th>
-              <th style={{ minWidth: 260 }}>Actions</th>
+              <th style={{ minWidth: 300 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((user) => {
-              const isEditing = editingUser?._id === user._id;
+              const id = user._id;
+              const isEditing = !!editing[id];
+              const draft = editing[id] || {};
+              const saving = !!savingMap[id];
+
               return (
-                <tr key={user._id}>
+                <tr key={id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(id)}
+                      onChange={() => toggleSelectOne(id)}
+                    />
+                  </td>
+
                   <td>
                     {isEditing ? (
                       <input
-                        value={editingUser.fullName || ''}
-                        onChange={(e) =>
-                          setEditingUser((prev) => ({ ...prev, fullName: e.target.value }))
-                        }
+                        value={draft.fullName}
+                        onChange={(e) => onEditField(id, 'fullName', e.target.value)}
                       />
                     ) : (
                       user.fullName
                     )}
                   </td>
-                  <td>{user.email}</td>
-                  <td>{user.nic}</td>
-                  <td>{user.role}</td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        value={draft.email}
+                        onChange={(e) => onEditField(id, 'email', e.target.value)}
+                      />
+                    ) : (
+                      user.email
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        value={draft.nic}
+                        onChange={(e) => onEditField(id, 'nic', e.target.value)}
+                      />
+                    ) : (
+                      user.nic
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        value={draft.phone}
+                        onChange={(e) => onEditField(id, 'phone', e.target.value)}
+                      />
+                    ) : (
+                      user.phone
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        value={draft.gradeId}
+                        onChange={(e) => onEditField(id, 'gradeId', e.target.value)}
+                        placeholder="e.g., 6A"
+                      />
+                    ) : (
+                      user.gradeId
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <select
+                        value={draft.role}
+                        onChange={(e) => onEditField(id, 'role', e.target.value)}
+                      >
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="parent">Parent</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    ) : (
+                      user.role
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        type="checkbox"
+                        checked={!!draft.isApproved}
+                        onChange={(e) => onEditField(id, 'isApproved', e.target.checked)}
+                        title="Approved?"
+                      />
+                    ) : (
+                      user.isApproved ? 'Yes' : 'No'
+                    )}
+                  </td>
+
                   <td>{user.isApproved ? 'Approved' : 'Pending'}</td>
+
                   <td>
                     {isEditing ? (
                       <>
-                        <button onClick={handleUpdate} disabled={saving}>
+                        <button onClick={() => saveOne(id)} disabled={saving}>
                           {saving ? 'Saving…' : 'Save'}
                         </button>
-                        <button onClick={() => setEditingUser(null)} disabled={saving}>
+                        <button onClick={() => cancelEdit(id)} disabled={saving}>
                           Cancel
                         </button>
                       </>
                     ) : (
                       <>
-                        <button onClick={() => setEditingUser(user)}>Edit</button>
-                        <button onClick={() => handleDelete(user._id)}>Delete</button>
+                        <button onClick={() => startEdit(user)}>Edit</button>
+                        <button onClick={() => removeOne(id)}>Delete</button>
 
                         {user.role === 'student' && !user.isApproved && (
                           <>
-                            <button onClick={() => approveUser(user._id)}>✅ Approve</button>
-                            <button onClick={() => rejectUser(user._id)}>❌ Reject</button>
+                            <button onClick={() => approveOne(id)}>✅ Approve</button>
+                            <button onClick={() => rejectOne(id)}>❌ Reject</button>
                             {user.isValidEmail === false && (
-                              <button onClick={() => resendEmail(user._id)}>✉️ Resend</button>
+                              <button onClick={() => resendEmail(id)}>✉️ Resend</button>
                             )}
                           </>
                         )}
@@ -291,7 +501,7 @@ const AdminUserManager = () => {
       )}
 
       {pages > 1 && (
-        <div className="pagination">
+        <div className="pagination" style={{ marginTop: 12 }}>
           <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
             ‹ Prev
           </button>

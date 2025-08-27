@@ -219,11 +219,25 @@ const RegistrationPage = () => {
         <button type="submit" disabled={loading}   onClick={handleSubmit}>
           {loading ? 'Registering...' : 'Register'}
         </button>
+        <div class="new-account">
+								
+								<a href="/login">
+									LoginPage
+								</a>
+							</div>
+              <div class="new-account">
+								
+								<a href="/">
+									Back Home
+								</a>
+							</div>
 
         {error && <p className="error-message">{error}</p>}
+        
       </form>
     </div>
   );
 };
+
 
 export default RegistrationPage;
