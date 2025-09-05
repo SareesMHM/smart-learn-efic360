@@ -33,13 +33,29 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname,'uploads') ) )
 
- // app.use('/auth', require('./routes/authRoutes'));
+// trust proxy helps capture real client IPs if behind a proxy
+app.set("trust proxy", 1);
+
+// ...other mounts...
+app.use("/api/admin/access-logs", require("./routes/accessLogs"));
+
 
 // API Routes
 app.use('/api', require('./routes/authRoutes'));
 app.use('/api/parent', require('./routes/parentRoutes'));
 app.use('/api/grades', require('./routes/gradeRoutes'));
 app.use('/api', require('./routes/materialRoutes'));
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api', require('./routes/notificationRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api', require('./routes/quizRoutes'));
+app.use('/api', require('./routes/assignmentRoutes'));
+
+
+app.use("/api/access-logs", require("./routes/accessLogs"));
+
+app.use("/chat", require("./routes/chatRoutes"));
+
  // if needed for fallback
 
 // Optional Protected Routes

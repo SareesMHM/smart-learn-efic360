@@ -5,7 +5,10 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
-/* ---------------- Helpers ---------------- */
+/* ---------------- Masters ---------------- */
+const SUBJECTS = ["English", "Maths", "Tamil", "Science", "History", "IT"];
+const GRADES = [6, 7, 8, 9, 10, 11];
+
 const ACCEPT_BY_TYPE = {
   video: "video/*",
   pdf: "application/pdf",
@@ -18,7 +21,9 @@ const ACCEPT_BY_TYPE = {
 
 const initialForm = {
   title: "",
-  type: "video", // video | pdf | assignment | notes | link | quiz | chatbot
+  subject: "",      // NEW
+  grade: "",        // NEW
+  type: "video",    // video | pdf | assignment | notes | link | quiz | chatbot
   description: "",
   file: null,
   link: "",
@@ -39,6 +44,7 @@ export default function ContentManager() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
+  const [notify, setNotify] = useState(true); // NEW: toggle to send student notifications
 
   /* -------- Load once -------- */
   useEffect(() => { fetchMaterials(); }, []);
@@ -64,10 +70,16 @@ export default function ContentManager() {
 
   /* -------- Dynamic meta scaffold -------- */
   useEffect(() => {
-    if (form.type === "quiz" && !form.meta?.questions) setMeta({ questions: [emptyQuestion()] });
-    else if (form.type === "chatbot" && !form.meta?.faqs) setMeta({ faqs: [emptyFaq()] });
-    else if (form.type === "notes" && !form.meta?.content) setMeta({ content: "" });
-    else if (form.type === "assignment" && !form.meta?.dueDate) setMeta({ dueDate: "", maxMarks: 100 });
+    if (form.type === "quiz" && !form.meta?.questions) {
+      // Add questions + expiresAt holder
+      setMeta({ questions: [emptyQuestion()], expiresAt: "" }); // NEW: expiresAt
+    } else if (form.type === "chatbot" && !form.meta?.faqs) {
+      setMeta({ faqs: [emptyFaq()] });
+    } else if (form.type === "notes" && !form.meta?.content) {
+      setMeta({ content: "" });
+    } else if (form.type === "assignment" && !form.meta?.dueDate) {
+      setMeta({ dueDate: "", maxMarks: 100 });
+    }
 
     if (form.type !== "video") setVideoSource("upload");
   }, [form.type]);
@@ -75,6 +87,8 @@ export default function ContentManager() {
   /* -------- Validate minimal requirements -------- */
   function validate() {
     if (!form.title.trim()) return "Title is required.";
+    if (!form.subject) return "Please select a subject.";
+    if (!form.grade) return "Please select a grade.";
     if (form.type === "link" && !form.link) return "Please provide a link URL.";
     if (form.type === "video" && videoSource === "url" && !form.link) return "Please provide a video URL.";
     if (["video", "pdf", "assignment"].includes(form.type) && !editingId && !form.file)
@@ -83,6 +97,8 @@ export default function ContentManager() {
     if (form.type === "quiz") {
       const qs = (form.meta?.questions || []).filter((q) => q.question.trim());
       if (!qs.length) return "Add at least one quiz question.";
+      // Optional: require an expire time for quiz
+      if (!form.meta?.expiresAt) return "Please set the quiz expire time.";
     }
     if (form.type === "chatbot") {
       const faqs = (form.meta?.faqs || []).filter((f) => f.q.trim() && f.a.trim());
@@ -104,6 +120,8 @@ export default function ContentManager() {
     try {
       const data = new FormData();
       data.append("title", form.title);
+      data.append("subject", form.subject); // NEW
+      data.append("grade", String(form.grade)); // NEW (as string for safety)
       data.append("type", form.type);
       data.append("description", form.description || "");
 
@@ -132,7 +150,7 @@ export default function ContentManager() {
         data.append("meta", JSON.stringify({ content: form.meta.content }));
       } else if (form.type === "quiz") {
         const questions = (form.meta?.questions || []).filter((q) => q.question.trim());
-        data.append("meta", JSON.stringify({ questions }));
+        data.append("meta", JSON.stringify({ questions, expiresAt: form.meta?.expiresAt || "" })); // NEW: expiresAt
       } else if (form.type === "chatbot") {
         const faqs = (form.meta?.faqs || []).filter((f) => f.q.trim() && f.a.trim());
         data.append("meta", JSON.stringify({ faqs }));
@@ -146,13 +164,34 @@ export default function ContentManager() {
         },
       };
 
+      let savedId = editingId;
       if (editingId) {
         await axios.put(`/api/materials/${editingId}`, data, config);
         setMessage("✅ Material updated.");
       } else {
-        await axios.post("/api/materials", data, config);
+        const res = await axios.post("/api/materials", data, config);
+        // Expect backend returns created material {_id: ...}
+        savedId = res?.data?._id || res?.data?.id;
         setMessage("✅ Material saved.");
       }
+
+      // Fire-and-forget notification (optional backend)
+      // if (notify) {
+      //   try {
+      //     await axios.post("/api/notifications/material", {
+      //       materialId: savedId || editingId || null,
+      //       title: form.title,
+      //       type: form.type,
+      //       subject: form.subject,
+      //       grade: Number(form.grade),
+      //       description: form.description || "",
+      //     });
+      //   } catch (e) {
+      //     // Non-blocking: show soft warning but don’t fail the save
+      //     console.warn("Notification send failed:", e?.response?.data || e.message);
+      //     setMessage((m) => (m ? `${m} · ⚠️ Notification not sent` : "⚠️ Notification not sent"));
+      //   }
+      // }
 
       setForm(initialForm);
       setVideoSource("upload");
@@ -171,6 +210,8 @@ export default function ContentManager() {
     setEditingId(mat._id);
     setForm({
       title: mat.title || "",
+      subject: mat.subject || "",
+      grade: mat.grade || "",
       type: mat.type,
       description: mat.description || "",
       file: null, // keep empty unless user chooses a new one
@@ -199,7 +240,9 @@ export default function ContentManager() {
       (m) =>
         m.title?.toLowerCase().includes(q) ||
         m.type?.toLowerCase().includes(q) ||
-        m.description?.toLowerCase().includes(q)
+        m.description?.toLowerCase().includes(q) ||
+        (m.subject || "").toLowerCase().includes(q) ||
+        String(m.grade || "").toLowerCase().includes(q)
     );
   }, [materials, query]);
 
@@ -218,7 +261,7 @@ export default function ContentManager() {
                 className="cm-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search title, type, description…"
+                placeholder="Search title, subject, grade, type…"
               />
             </div>
           </div>
@@ -234,6 +277,41 @@ export default function ContentManager() {
                 <input name="title" value={form.title} onChange={handleChange} required />
               </div>
 
+              {/* 1) Subject */}
+              <div className="field">
+                <label>
+                  Subject<span className="req">*</span>
+                </label>
+                <select
+                  name="subject"
+                  value={form.subject}
+                  onChange={handleChange}
+                >
+                  <option value="">Select subject…</option>
+                  {SUBJECTS.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2) Grade */}
+              <div className="field">
+                <label>
+                  Grade<span className="req">*</span>
+                </label>
+                <select
+                  name="grade"
+                  value={form.grade}
+                  onChange={handleChange}
+                >
+                  <option value="">Select grade…</option>
+                  {GRADES.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 3) Type */}
               <div className="field">
                 <label>Type</label>
                 <select
@@ -382,9 +460,22 @@ export default function ContentManager() {
               </div>
             )}
 
-            {form.type === "quiz" && <QuizBuilder meta={form.meta} setMeta={setMeta} />}
+            {form.type === "quiz" && (
+              <QuizBuilder meta={form.meta} setMeta={setMeta} />
+            )}
 
             {form.type === "chatbot" && <ChatbotBuilder meta={form.meta} setMeta={setMeta} />}
+
+            {/* Notify students toggle */}
+            <div className="card" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <input
+                id="notify-students"
+                type="checkbox"
+                checked={notify}
+                onChange={(e) => setNotify(e.target.checked)}
+              />
+              <label htmlFor="notify-students">Notify students about this {form.type}</label>
+            </div>
 
             {/* Progress */}
             {loading && (
@@ -421,12 +512,21 @@ export default function ContentManager() {
               {filtered.map((m) => (
                 <li key={m._id} className="cm-item">
                   <div className="cm-meta">
-                    <div className={`type-badge t-${m.type}`}>{m.type}</div>
+                    <div className="row">
+                      <div className={`type-badge t-${m.type}`}>{m.type}</div>
+                      {m.subject && <div className="pill">{m.subject}</div>}
+                      {m.grade && <div className="pill">Grade {m.grade}</div>}
+                    </div>
                     <h4 className="cm-title">{m.title}</h4>
                     {m.description && <p className="cm-desc">{m.description}</p>}
 
                     {/* Type-specific summary */}
-                    {m.type === "quiz" && <p className="muted">Questions: {m.meta?.questions?.length || 0}</p>}
+                    {m.type === "quiz" && (
+                      <p className="muted">
+                        Questions: {m.meta?.questions?.length || 0}
+                        {m.meta?.expiresAt ? ` · Expires: ${new Date(m.meta.expiresAt).toLocaleString()}` : ""}
+                      </p>
+                    )}
                     {m.type === "chatbot" && <p className="muted">FAQs: {m.meta?.faqs?.length || 0}</p>}
                     {m.type === "notes" && (
                       <p className="muted">
@@ -449,7 +549,7 @@ export default function ContentManager() {
                       </a>
                     )}
                     {!m.link && m.file && (
-                      <a href={`/uploads/${m.file}`} target="_blank" rel="noopener noreferrer" className="btn ghost">
+                      <a href={`${m.file}`} target="_blank" rel="noopener noreferrer" className="btn ghost">
                         View File
                       </a>
                     )}
@@ -475,23 +575,24 @@ export default function ContentManager() {
 /* --------------- Quiz Builder --------------- */
 function QuizBuilder({ meta, setMeta }) {
   const questions = meta?.questions || [emptyQuestion()];
+  const expiresAt = meta?.expiresAt || ""; // NEW
 
   const updateQ = (i, patch) => {
     const next = [...questions];
     next[i] = { ...next[i], ...patch };
-    setMeta({ questions: next });
+    setMeta({ ...meta, questions: next, expiresAt });
   };
   const updateOption = (qi, oi, val) => {
     const next = [...questions];
     const opts = [...next[qi].options];
     opts[oi] = val;
     next[qi] = { ...next[qi], options: opts };
-    setMeta({ questions: next });
+    setMeta({ ...meta, questions: next, expiresAt });
   };
   const addOption = (qi) => {
     const next = [...questions];
     next[qi] = { ...next[qi], options: [...next[qi].options, ""] };
-    setMeta({ questions: next });
+    setMeta({ ...meta, questions: next, expiresAt });
   };
   const removeOption = (qi, oi) => {
     const next = [...questions];
@@ -500,14 +601,26 @@ function QuizBuilder({ meta, setMeta }) {
     opts.splice(oi, 1);
     next[qi].correctIndex = Math.min(next[qi].correctIndex, opts.length - 1);
     next[qi] = { ...next[qi], options: opts };
-    setMeta({ questions: next });
+    setMeta({ ...meta, questions: next, expiresAt });
   };
-  const addQ = () => setMeta({ questions: [...questions, emptyQuestion()] });
-  const removeQ = (i) => setMeta({ questions: questions.filter((_, idx) => idx !== i) });
+  const addQ = () => setMeta({ ...meta, questions: [...questions, emptyQuestion()], expiresAt });
+  const removeQ = (i) => setMeta({ ...meta, questions: questions.filter((_, idx) => idx !== i), expiresAt });
 
   return (
     <div className="card">
       <h4>Quiz Builder</h4>
+
+      {/* NEW: Expire time */}
+      <div className="field">
+        <label>Expire Time<span className="req">*</span></label>
+        <input
+          type="datetime-local"
+          value={expiresAt}
+          onChange={(e) => setMeta({ ...meta, questions, expiresAt: e.target.value })}
+        />
+        <small className="muted">After this time, students shouldn’t be able to submit the quiz.</small>
+      </div>
+
       {questions.map((q, i) => (
         <div key={i} className="quiz-q">
           <div className="grid">

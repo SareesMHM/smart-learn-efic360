@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
+
 const FEATURES = [
   { title: "User Management",       icon: "fa-users",        path: "/Admin/UserManagement" },
   { title: "Teacher Approvals",     icon: "fa-check",        path: "/Admin/approvals" },
@@ -16,8 +17,10 @@ const FEATURES = [
   { title: "VerificationCenter",    icon: "fa-shield-check", path: "/Admin/VerificationCenter" },
   { title: "Notifications",         icon: "fa-bell",         path: "/Admin/notifications" },
   { title: "System Settings",       icon: "fa-cogs",         path: "/Admin/settings" },
+  { title: "AccessLogViewer",       icon: "fa-cogs",         path: "/Admin/AccessLogViewer" },
   { title: "AssignmentSubmissions",       icon: "fa-cogs",         path: "/Admin/AssignmentSubmissions" },
   { title: "QuizResults",       icon: "fa-cogs",         path: "/Admin/QuizResults" },
+  
 ];
 
 function AdminDashboard() {

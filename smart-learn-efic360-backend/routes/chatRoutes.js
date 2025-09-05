@@ -1,9 +1,7 @@
-// // routes/chatRoutes.js
-// const express = require('express');
-// const router = express.Router();
-// const chatController = require('../controllers/chatController');
-// const authMiddleware = require('../middlewares/authMiddleware'); // optional auth
+// routes/chatRoutes.js
+const router = require("express").Router();
+const chatController = require("../controllers/chatController");
 
-// router.post('/send-message', authMiddleware, chatController.sendMessage);
+router.post("/send-message", chatController.sendMessage);
 
-// module.exports = router;
+module.exports = router;

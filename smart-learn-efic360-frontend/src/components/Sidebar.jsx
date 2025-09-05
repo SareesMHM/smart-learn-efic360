@@ -53,7 +53,7 @@ const Sidebar = () => {
             </li>
 
             <li>
-              <Link to="/profile">
+              <Link to="/ProfileView">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-user"></i>

@@ -64,6 +64,11 @@ $topbar-h: 65px;
   .topbar__menu { display: none; }
 }
 
+
+/* example only – tweak to your design system */
+.topbar__avatar-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-right: 8px; }
+.topbar__avatar     { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 8px; background: #eef2f7; color: #334155; }
+
 .topbar__brand {
   display: inline-flex; align-items: center; gap: 8px;
   height: var(--topbar-h);

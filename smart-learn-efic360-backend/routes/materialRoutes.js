@@ -6,8 +6,10 @@ const multer = require("multer");
 
 const {
   uploadMaterial,   // POST handler
-  getMaterials,     // GET handler
-  deleteMaterial,   // DELETE handler
+  getMaterials,     // GET list
+  getMaterialById,  // GET one  (NEW)
+  updateMaterial,   // PUT       (NEW)
+  deleteMaterial,   // DELETE
 } = require("../controllers/materialController");
 
 const router = express.Router();
@@ -69,13 +71,28 @@ const upload = multer({
 });
 
 /* -------------------- Routes -------------------- */
-// Create / Update material (file optional; Multer only runs if a file is sent)
+// Create material (file optional; Multer only runs if a file field is present)
 router.post("/materials", upload.single("file"), uploadMaterial);
 
-// List materials
+// List all materials
 router.get("/materials", getMaterials);
+
+// Get one material (NEW)
+router.get("/materials/:id", getMaterialById);
+
+// Update material (file optional) (NEW)
+router.put("/materials/:id", upload.single("file"), updateMaterial);
 
 // Delete material
 router.delete("/materials/:id", deleteMaterial);
+
+/* -------------------- Multer error -> JSON -------------------- */
+// Ensure Multer errors are returned as JSON instead of HTML
+router.use((err, _req, res, _next) => {
+  if (err instanceof multer.MulterError || err.message?.includes("Unsupported file type")) {
+    return res.status(400).json({ message: err.message });
+  }
+  return res.status(500).json({ message: "Upload error", error: err.message });
+});
 
 module.exports = router;

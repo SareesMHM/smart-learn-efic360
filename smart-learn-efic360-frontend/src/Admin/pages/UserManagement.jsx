@@ -1,13 +1,22 @@
+// src/pages/AdminUserManager.jsx
 import { useEffect, useMemo, useState } from 'react';
 import adminService from '../services/adminService';
+import Footer from "../components/Footer";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
-const defaultLimit = 10;
+const PAGE_SIZES = [10, 20, 50, 100];
 
 const AdminUserManager = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [role, setRole] = useState('all');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(defaultLimit);
+  const [limit, setLimit] = useState(PAGE_SIZES[0]);
+
+  const [sortKey, setSortKey] = useState('createdAt'); // createdAt | fullName | email | role | isApproved | gradeId
+  const [sortDir, setSortDir] = useState('desc');      // asc | desc
 
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -17,20 +26,26 @@ const AdminUserManager = () => {
   const [selectedParent, setSelectedParent] = useState(null);
   const [children, setChildren] = useState([]);
 
-  const [editing, setEditing] = useState({}); // { [id]: { ...draft fields } }
-  const [savingMap, setSavingMap] = useState({}); // { [id]: boolean }
+  const [editing, setEditing] = useState({});      // { [id]: { ...draft } }
+  const [savingMap, setSavingMap] = useState({});  // { [id]: boolean }
 
-  const [selectedIds, setSelectedIds] = useState(new Set()); // for bulk actions
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const clearToasts = () => {
-    setMessage('');
-    setError('');
-  };
+  // auto-dismiss toasts
+  useEffect(() => {
+    if (!message && !error) return;
+    const t = setTimeout(() => { setMessage(''); setError(''); }, 4000);
+    return () => clearTimeout(t);
+  }, [message, error]);
+
+  const clearToasts = () => { setMessage(''); setError(''); };
+
+  const sortParam = `${sortDir === 'desc' ? '-' : ''}${sortKey}`;
 
   // ---------- Fetch ----------
   const load = async (opts = {}) => {
@@ -38,14 +53,14 @@ const AdminUserManager = () => {
     clearToasts();
     try {
       const params = {
-        role,
+        role: role === 'all' ? undefined : role,
         q,
         page,
         limit,
-        sort: '-createdAt',
+        sort: sortParam,
         ...opts,
       };
-      const res = await adminService.getAllUsers(params); // { total, page, pages, perPage, data }
+      const res = await adminService.getAllUsers(params); // expects { total, page, pages, perPage, data }
       setRows(res.data || []);
       setTotal(res.total || 0);
       setPages(res.pages || 1);
@@ -53,14 +68,17 @@ const AdminUserManager = () => {
       setSelectedIds(new Set());
       setSelectAll(false);
     } catch (e) {
+      setRows([]);
       setError(e?.response?.data?.message || 'Failed to fetch users.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [role, page]);
+  // initial + deps
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [role, page, sortKey, sortDir, limit]);
 
+  // search debounce
   useEffect(() => {
     const t = setTimeout(() => {
       setPage(1);
@@ -87,21 +105,11 @@ const AdminUserManager = () => {
   };
 
   const cancelEdit = (id) => {
-    setEditing((prev) => {
-      const clone = { ...prev };
-      delete clone[id];
-      return clone;
-    });
+    setEditing((prev) => { const x = { ...prev }; delete x[id]; return x; });
   };
 
   const onEditField = (id, key, value) => {
-    setEditing((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [key]: value,
-      },
-    }));
+    setEditing((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
   };
 
   const saveOne = async (id) => {
@@ -113,7 +121,7 @@ const AdminUserManager = () => {
       await adminService.editUser(id, payload);
       setMessage('User updated.');
       cancelEdit(id);
-      load(); // refresh current page
+      load();
     } catch (e) {
       setError(e?.response?.data?.message || 'Failed to update user.');
     } finally {
@@ -179,8 +187,7 @@ const AdminUserManager = () => {
   const toggleSelectOne = (id) => {
     setSelectedIds((curr) => {
       const next = new Set(curr);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
@@ -188,49 +195,36 @@ const AdminUserManager = () => {
   const selectedCount = selectedIds.size;
   const selectedList = useMemo(() => Array.from(selectedIds), [selectedIds]);
 
+  const runConcurrent = async (tasks, label) => {
+    clearToasts();
+    const results = await Promise.allSettled(tasks);
+    const ok = results.filter(r => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    if (ok) setMessage(`${label}: ${ok} succeeded${fail ? `, ${fail} failed` : ''}.`);
+    if (fail) setError(`${label}: ${fail} failed.`);
+    load();
+  };
+
   const bulkApprove = async () => {
     if (!selectedCount) return;
-    if (!window.confirm(`Approve ${selectedCount} selected user(s)?`)) return;
-    clearToasts();
-    try {
-      for (const id of selectedList) {
-        await adminService.approveStudent(id);
-      }
-      setMessage(`Approved ${selectedCount} user(s).`);
-      load();
-    } catch (e) {
-      setError(e?.response?.data?.message || 'Bulk approve failed.');
-    }
+    const ids = rows.filter(r => selectedIds.has(r._id) && r.role === 'student' && !r.isApproved).map(r => r._id);
+    if (!ids.length) return setError('No eligible students selected.');
+    if (!window.confirm(`Approve ${ids.length} selected user(s)?`)) return;
+    await runConcurrent(ids.map(id => adminService.approveStudent(id)), 'Approve');
   };
 
   const bulkReject = async () => {
     if (!selectedCount) return;
-    if (!window.confirm(`Reject ${selectedCount} selected user(s)?`)) return;
-    clearToasts();
-    try {
-      for (const id of selectedList) {
-        await adminService.rejectStudent(id);
-      }
-      setMessage(`Rejected ${selectedCount} user(s).`);
-      load();
-    } catch (e) {
-      setError(e?.response?.data?.message || 'Bulk reject failed.');
-    }
+    const ids = rows.filter(r => selectedIds.has(r._id) && r.role === 'student' && r.isApproved).map(r => r._id);
+    if (!ids.length) return setError('No approved students selected to reject.');
+    if (!window.confirm(`Reject ${ids.length} selected user(s)?`)) return;
+    await runConcurrent(ids.map(id => adminService.rejectStudent(id)), 'Reject');
   };
 
   const bulkDelete = async () => {
     if (!selectedCount) return;
     if (!window.confirm(`Delete ${selectedCount} selected user(s)?`)) return;
-    clearToasts();
-    try {
-      for (const id of selectedList) {
-        await adminService.deleteUser(id);
-      }
-      setMessage(`Deleted ${selectedCount} user(s).`);
-      load();
-    } catch (e) {
-      setError(e?.response?.data?.message || 'Bulk delete failed.');
-    }
+    await runConcurrent(selectedList.map(id => adminService.deleteUser(id)), 'Delete');
   };
 
   // ---------- Parent -> Children by NIC ----------
@@ -248,6 +242,7 @@ const AdminUserManager = () => {
         q: nicQ,
         page: 1,
         limit: 5,
+        sort: '-createdAt',
       });
       const parent = (parentsRes.data || []).find(
         (p) => (p.nic || '').toLowerCase() === nicQ.toLowerCase()
@@ -265,6 +260,7 @@ const AdminUserManager = () => {
         q: parent.phone || '',
         page: 1,
         limit: 100,
+        sort: '-createdAt',
       });
       const kids = (studentsRes.data || []).filter(
         (s) => s.parentPhone && s.parentPhone === parent.phone
@@ -276,255 +272,283 @@ const AdminUserManager = () => {
     }
   };
 
+  // ---------- CSV export ----------
+  const exportCSV = () => {
+    const data = selectedList.length
+      ? rows.filter(r => selectedIds.has(r._id))
+      : rows;
+
+    const safe = (v) => {
+      if (v == null) return '';
+      const s = String(v).replace(/"/g, '""');
+      return /[,"\n]/.test(s) ? `"${s}"` : s;
+    };
+
+    const headers = ['Full Name','Email','NIC','Phone','Grade','Role','Approved','Created At','ID'];
+    const lines = [
+      headers.join(','),
+      ...data.map(u => [
+        safe(u.fullName),
+        safe(u.email),
+        safe(u.nic),
+        safe(u.phone),
+        safe(u.gradeId),
+        safe(u.role),
+        safe(u.isApproved ? 'Yes' : 'No'),
+        safe(u.createdAt ? new Date(u.createdAt).toLocaleString() : ''),
+        safe(u._id),
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([lines], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.download = `users_${selectedList.length ? 'selected_' : ''}${ts}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ---------- Sorting UI ----------
+  const SortBtn = ({ col, label }) => {
+    const active = sortKey === col;
+    const dir = active ? sortDir : 'asc';
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          if (active) setSortDir(dir === 'asc' ? 'desc' : 'asc');
+          else { setSortKey(col); setSortDir('asc'); }
+          setPage(1);
+        }}
+        title={`Sort by ${label}`}
+        style={{ background: 'none', border: 'none', fontWeight: active ? 700 : 500, cursor: 'pointer' }}
+      >
+        {label}{' '}{active ? (dir === 'asc' ? '▲' : '▼') : '↕'}
+      </button>
+    );
+  };
+
   // ---------- UI ----------
   return (
-    <div className="admin-user-manager">
-      <h2>User Management Panel</h2>
+    <div className="app-shell">
+      <Header onToggleSidebar={() => setSidebarOpen(v => !v)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {message && <div className="toast success">{message}</div>}
-      {error && <div className="toast error">{error}</div>}
+      <main className="admin-user-manager" style={{ padding: 16 }}>
+        <h2>User Management Panel</h2>
 
-      <div className="toolbar" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <label>
-          Role:&nbsp;
-          <select
-            value={role}
-            onChange={(e) => {
-              setRole(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="all">All</option>
-            <option value="student">Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="parent">Parent</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
+        {message && <div className="toast success">{message}</div>}
+        {error && <div className="toast error">{error}</div>}
 
-        <input
-          type="text"
-          placeholder="Search by name, email, NIC or phone"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          style={{ minWidth: 280 }}
-        />
+        <div className="toolbar" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label>
+            Role:&nbsp;
+            <select
+              value={role}
+              onChange={(e) => { setRole(e.target.value); setPage(1); }}
+            >
+              <option value="all">All</option>
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="parent">Parent</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
 
-        <button onClick={handleSearchParent} disabled={!q.trim() || loading}>
-          Search Parent NIC
-        </button>
+          <input
+            type="text"
+            placeholder="Search by name, email, NIC or phone"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            style={{ minWidth: 280 }}
+          />
 
-        {/* Bulk actions */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button onClick={bulkApprove} disabled={!selectedCount}>Bulk Approve</button>
-          <button onClick={bulkReject} disabled={!selectedCount}>Bulk Reject</button>
-          <button onClick={bulkDelete} disabled={!selectedCount}>Bulk Delete</button>
+          <button onClick={handleSearchParent} disabled={!q.trim() || loading}>
+            Search Parent NIC
+          </button>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label>
+              Page size:&nbsp;
+              <select
+                value={limit}
+                onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              >
+                {PAGE_SIZES.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+
+            <button onClick={exportCSV} disabled={rows.length === 0}>
+              Export CSV {selectedIds.size ? '(selected)' : '(page)'}
+            </button>
+
+            <button onClick={bulkApprove} disabled={!selectedIds.size}>Bulk Approve</button>
+            <button onClick={bulkReject} disabled={!selectedIds.size}>Bulk Reject</button>
+            <button onClick={bulkDelete} disabled={!selectedIds.size}>Bulk Delete</button>
+          </div>
         </div>
-      </div>
 
-      {selectedParent && (
-        <div className="parent-card" style={{ marginTop: 12 }}>
-          <h4>Parent: {selectedParent.fullName}</h4>
-          <p>Phone: {selectedParent.phone}</p>
-          <p>Children: {children.length}</p>
-          {children.map((c) => (
-            <div key={c._id}>
-              <p>{c.fullName} — Grade {c.gradeId}</p>
-            </div>
-          ))}
-        </div>
-      )}
+        {selectedParent && (
+          <div className="parent-card" style={{ marginTop: 12 }}>
+            <h4>Parent: {selectedParent.fullName}</h4>
+            <p>Phone: {selectedParent.phone}</p>
+            <p>Children: {children.length}</p>
+            {children.map((c) => (
+              <div key={c._id}>
+                <p>{c.fullName} — Grade {c.gradeId}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {loading ? (
-        <p>Loading users…</p>
-      ) : rows.length === 0 ? (
-        <p>No users found.</p>
-      ) : (
-        <table className="user-table" style={{ width: '100%', marginTop: 12 }}>
-          <thead>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  checked={selectAll}
-                  onChange={toggleSelectAll}
-                  title="Select all on this page"
-                />
-              </th>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>NIC</th>
-              <th>Phone</th>
-              <th>Grade</th>
-              <th>Role</th>
-              <th>Approved</th>
-              <th>Status</th>
-              <th style={{ minWidth: 300 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((user) => {
-              const id = user._id;
-              const isEditing = !!editing[id];
-              const draft = editing[id] || {};
-              const saving = !!savingMap[id];
+        {loading ? (
+          <p>Loading users…</p>
+        ) : rows.length === 0 ? (
+          <p>No users found.</p>
+        ) : (
+          <table className="user-table" style={{ width: '100%', marginTop: 12 }}>
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={toggleSelectAll}
+                    title="Select all on this page"
+                  />
+                </th>
+                <th><SortBtn col="fullName" label="Full Name" /></th>
+                <th><SortBtn col="email" label="Email" /></th>
+                <th>NIC</th>
+                <th><SortBtn col="phone" label="Phone" /></th>
+                <th><SortBtn col="gradeId" label="Grade" /></th>
+                <th><SortBtn col="role" label="Role" /></th>
+                <th><SortBtn col="isApproved" label="Approved" /></th>
+                <th><SortBtn col="createdAt" label="Created" /></th>
+                <th style={{ minWidth: 320 }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((user) => {
+                const id = user._id;
+                const isEditing = !!editing[id];
+                const draft = editing[id] || {};
+                const saving = !!savingMap[id];
 
-              return (
-                <tr key={id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(id)}
-                      onChange={() => toggleSelectOne(id)}
-                    />
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <input
-                        value={draft.fullName}
-                        onChange={(e) => onEditField(id, 'fullName', e.target.value)}
-                      />
-                    ) : (
-                      user.fullName
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <input
-                        value={draft.email}
-                        onChange={(e) => onEditField(id, 'email', e.target.value)}
-                      />
-                    ) : (
-                      user.email
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <input
-                        value={draft.nic}
-                        onChange={(e) => onEditField(id, 'nic', e.target.value)}
-                      />
-                    ) : (
-                      user.nic
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <input
-                        value={draft.phone}
-                        onChange={(e) => onEditField(id, 'phone', e.target.value)}
-                      />
-                    ) : (
-                      user.phone
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <input
-                        value={draft.gradeId}
-                        onChange={(e) => onEditField(id, 'gradeId', e.target.value)}
-                        placeholder="e.g., 6A"
-                      />
-                    ) : (
-                      user.gradeId
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
-                      <select
-                        value={draft.role}
-                        onChange={(e) => onEditField(id, 'role', e.target.value)}
-                      >
-                        <option value="student">Student</option>
-                        <option value="teacher">Teacher</option>
-                        <option value="parent">Parent</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    ) : (
-                      user.role
-                    )}
-                  </td>
-
-                  <td>
-                    {isEditing ? (
+                return (
+                  <tr key={id}>
+                    <td>
                       <input
                         type="checkbox"
-                        checked={!!draft.isApproved}
-                        onChange={(e) => onEditField(id, 'isApproved', e.target.checked)}
-                        title="Approved?"
+                        checked={selectedIds.has(id)}
+                        onChange={() => toggleSelectOne(id)}
                       />
-                    ) : (
-                      user.isApproved ? 'Yes' : 'No'
-                    )}
-                  </td>
+                    </td>
 
-                  <td>{user.isApproved ? 'Approved' : 'Pending'}</td>
+                    <td>
+                      {isEditing ? (
+                        <input value={draft.fullName} onChange={(e) => onEditField(id, 'fullName', e.target.value)} />
+                      ) : user.fullName}
+                    </td>
 
-                  <td>
-                    {isEditing ? (
-                      <>
-                        <button onClick={() => saveOne(id)} disabled={saving}>
-                          {saving ? 'Saving…' : 'Save'}
-                        </button>
-                        <button onClick={() => cancelEdit(id)} disabled={saving}>
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={() => startEdit(user)}>Edit</button>
-                        <button onClick={() => removeOne(id)}>Delete</button>
+                    <td>
+                      {isEditing ? (
+                        <input value={draft.email} onChange={(e) => onEditField(id, 'email', e.target.value)} />
+                      ) : user.email}
+                    </td>
 
-                        {user.role === 'student' && !user.isApproved && (
-                          <>
-                            <button onClick={() => approveOne(id)}>✅ Approve</button>
-                            <button onClick={() => rejectOne(id)}>❌ Reject</button>
-                            {user.isValidEmail === false && (
-                              <button onClick={() => resendEmail(id)}>✉️ Resend</button>
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                    <td>
+                      {isEditing ? (
+                        <input value={draft.nic} onChange={(e) => onEditField(id, 'nic', e.target.value)} />
+                      ) : user.nic}
+                    </td>
 
-      {pages > 1 && (
-        <div className="pagination" style={{ marginTop: 12 }}>
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
-            ‹ Prev
-          </button>
+                    <td>
+                      {isEditing ? (
+                        <input value={draft.phone} onChange={(e) => onEditField(id, 'phone', e.target.value)} />
+                      ) : user.phone}
+                    </td>
 
-          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              className={page === n ? 'active' : ''}
-              onClick={() => setPage(n)}
-            >
-              {n}
-            </button>
-          ))}
+                    <td>
+                      {isEditing ? (
+                        <input value={draft.gradeId} onChange={(e) => onEditField(id, 'gradeId', e.target.value)} placeholder="e.g., 6A" />
+                      ) : user.gradeId}
+                    </td>
 
-          <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}>
-            Next ›
-          </button>
+                    <td>
+                      {isEditing ? (
+                        <select value={draft.role} onChange={(e) => onEditField(id, 'role', e.target.value)}>
+                          <option value="student">Student</option>
+                          <option value="teacher">Teacher</option>
+                          <option value="parent">Parent</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      ) : user.role}
+                    </td>
 
-          <span style={{ marginLeft: 8 }}>
-            Showing {rows.length} of {total} (page {page}/{pages}, {perPage}/page)
-          </span>
-        </div>
-      )}
+                    <td>
+                      {isEditing ? (
+                        <input
+                          type="checkbox"
+                          checked={!!draft.isApproved}
+                          onChange={(e) => onEditField(id, 'isApproved', e.target.checked)}
+                          title="Approved?"
+                        />
+                      ) : (user.isApproved ? 'Yes' : 'No')}
+                    </td>
+
+                    <td>{user.createdAt ? new Date(user.createdAt).toLocaleString() : ''}</td>
+
+                    <td>
+                      {isEditing ? (
+                        <>
+                          <button onClick={() => saveOne(id)} disabled={saving}>
+                            {saving ? 'Saving…' : 'Save'}
+                          </button>
+                          <button onClick={() => cancelEdit(id)} disabled={saving}>Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => startEdit(user)}>Edit</button>
+                          <button onClick={() => removeOne(id)}>Delete</button>
+                          {user.role === 'student' && !user.isApproved && (
+                            <>
+                              <button onClick={() => approveOne(id)}>✅ Approve</button>
+                              <button onClick={() => rejectOne(id)}>❌ Reject</button>
+                              {user.isValidEmail === false && (
+                                <button onClick={() => resendEmail(id)}>✉️ Resend</button>
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {pages > 1 && (
+          <div className="pagination" style={{ marginTop: 12, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>‹ Prev</button>
+
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={page === n ? 'active' : ''} onClick={() => setPage(n)}>{n}</button>
+            ))}
+
+            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}>Next ›</button>
+
+            <span style={{ marginLeft: 8 }}>
+              Showing {rows.length} of {total} (page {page}/{pages}, {perPage}/page)
+            </span>
+          </div>
+        )}
+        <Footer />
+      </main>
     </div>
   );
 };

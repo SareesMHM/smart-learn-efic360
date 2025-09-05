@@ -25,7 +25,7 @@ const AdminRegisterUserForm = () => {
       district: '',
       postalCode: '',
     },
-    subject: '',
+    
     qualifications: '',
     childrenName: '',
     work: '',
@@ -103,7 +103,7 @@ const AdminRegisterUserForm = () => {
       gradeId,
       gender,
       address,
-      subject,
+     
       qualifications,
       childrenName,
       work,
@@ -125,7 +125,7 @@ const AdminRegisterUserForm = () => {
       !address.district ||
       !address.postalCode ||
       (role === 'student' && (!parentnic || !parentPhone || !parentName || !gradeId)) ||
-      (role === 'teacher' && (!phone || !nic || !subject || !qualifications)) ||
+      (role === 'teacher' && (!phone || !nic  || !qualifications)) ||
       (role === 'parent' && (!parentName || !parentPhone || !parentnic || !childrenName || !work))
     ) {
       setError('Please fill all required fields.');
@@ -347,13 +347,7 @@ const AdminRegisterUserForm = () => {
           onChange={handleChange}
          
         />
-        <input
-              name="subject"
-              placeholder="Subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
-            />
+        
             <input
               name="qualifications"
               placeholder="Qualifications"

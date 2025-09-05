@@ -1,249 +1,74 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
+// src/pages/StudentDashboard.jsx
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
+const FEATURES = [
+  { title: "My Profile",           icon: "fa-smile-o",      path: "/ProfileView",            c: "text-primary" },
+  { title: "Progress Tracking",    icon: "fa-bar-chart",    path: "/progress",               c: "text-success" },
+  { title: "Student Library",      icon: "fa-paperclip",    path: "/StudentLibrary",         c: "text-primary" },
+  { title: "Chat with MUNIMA",     icon: "fa-comment",      path: "/chatbot",                c: "text-warning" },
+  { title: "Badges & Rewards",     icon: "fa-trophy",       path: "/BadgeSystemPage",        c: "text-danger" },
+  { title: "Adaptive Quizzes",     icon: "fa-puzzle-piece", path: "/QuizPlayer",             c: "text-info" },
+  { title: "Offline Learning",     icon: "fa-download",     path: "/OfflineLearning",        c: "text-dark" },
+  { title: "Mentor Access",        icon: "fa-users",        path: "/MentorList",             c: "text-primary" },
+  { title: "Real-Time Feedback",   icon: "fa-comments",     path: "/FeedbackList",           c: "text-warning" },
+  { title: "Notifications",        icon: "fa-bell",         path: "/NotificationsPage",      c: "text-info" },
+  { title: "Performance Analytics",icon: "fa-line-chart",   path: "/PerformanceAnalyticsPage", c: "text-primary" },
+];
 
-
-const StudentDashboard = () => {
+function StudentDashboard() {
   const [userData, setUserData] = useState(null);
-  const [progressData, setProgressData] = useState({
-    quizzesCompleted: 0,
-    lessonsCompleted: 0,
-    badgesEarned: 0,
-  });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Call your backend API to fetch user data (mocked here)
-    // Example: fetchUserData().then(data => setUserData(data));
-    
-    setUserData({
-      username: 'Student',
-      profilePic: 'assets/images/profile.jpg',
-    });
-
-    // Mock progress data
-    setProgressData({
-      quizzesCompleted: 5,
-      lessonsCompleted: 8,
-      badgesEarned: 3,
-    });
+    // Mock user until wired to real auth/profile
+    setUserData({ name: "Student", profilePic: "/assets/images/profile.jpg" });
   }, []);
 
   return (
-    <div className="app-content">
-       <Header />
-      <Sidebar />
+    <div className="app-shell">
+      <Header onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content */}
-      <div className="main-content">
-        <div className="wrap-content container" id="container">
-          {/* Page Title */}
-          <section id="page-title">
-            <div className="row">
-              <div className="col-sm-8">
-                <h1 className="mainTitle">Student Dashboard</h1>
-              </div>
-              <ol className="breadcrumb">
-                <li><span>Student</span></li>
-                <li className="active"><span>Dashboard</span></li>
-              </ol>
-            </div>
-          </section>
-
-          {/* Dashboard Content */}
-          <div className="container-fluid container-fullw bg-white">
-            <div className="row">
-              {/* My Profile */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-primary"></i>
-                      <i className="fa fa-smile-o fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">My Profile</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/ProfileView">View Profile</Link>
-                      <Link to="/ProfileEdit">Update Profile</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Tracking */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-success"></i>
-                      <i className="fa fa-bar-chart fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Progress Tracking</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/progress">View Progress</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* My Bookings */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-primary"></i>
-                      <i className="fa fa-paperclip fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">StudentLibrary</h2>
-                    <p className="cl-effect-1">
-                      <Link to="/StudentLibrary">View StudentLibrary</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Smart AI Chatbot */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-warning"></i>
-                      <i className="fa fa-comment fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Chat with MUNIMA</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/chatbot">Start Chat</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Badge & Reward System */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-danger"></i>
-                      <i className="fa fa-trophy fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Badges & Rewards</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/BadgeSystemPage">View Badges</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Adaptive Learning Quizzes */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-info"></i>
-                      <i className="fa fa-puzzle-piece fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Adaptive Quizzes</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/QuizPlayer">Start Quiz</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Offline Learning Support */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-dark"></i>
-                      <i className="fa fa-download fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Offline Learning</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/OfflineLearning">Download Resources</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mentor Access */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-primary"></i>
-                      <i className="fa fa-users fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Mentor Access</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/MentorList">Contact Mentor</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Real-Time Feedback */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-warning"></i>
-                      <i className="fa fa-comments fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Real-Time Feedback</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/FeedbackList">Provide Feedback</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notifications & Announcements */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-info"></i>
-                      <i className="fa fa-bell fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Notifications</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/NotificationsPage">Check Notifications</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance Analytics */}
-              <div className="col-sm-4">
-                <div className="panel panel-white no-radius text-center">
-                  <div className="panel-body">
-                    <span className="fa-stack fa-2x">
-                      <i className="fa fa-square fa-stack-2x text-primary"></i>
-                      <i className="fa fa-line-chart fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h2 className="StepTitle">Performance Analytics</h2>
-                    <p className="links cl-effect-1">
-                      <Link to="/PerformanceAnalyticsPage">View Performance</Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
+      {/* Main */}
+      <main className="app-main" role="main" aria-labelledby="pageTitle">
+        <div className="page-head">
+          <h1 id="pageTitle">Student Dashboard</h1>
+          {userData && (
+            <p className="muted">Welcome back, {userData.name}.</p>
+          )}
         </div>
-      </div>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <p>&copy; 2025 Smart Learn EFIC 360 | All Rights Reserved</p>
+        {/* Tiles Grid */}
+        <div className="dashboard-grid">
+          {FEATURES.map((f) => (
+            <Link
+              key={f.path}
+              to={f.path}
+              className="card-tile"
+              aria-label={`${f.title} – Open`}
+            >
+              <div className="tile-icon">
+                <span className="fa-stack fa-2x">
+                  <i className={`fa fa-square fa-stack-2x ${f.c}`} />
+                  <i className={`fa ${f.icon} fa-stack-1x fa-inverse`} />
+                </span>
+              </div>
+              <div className="tile-content">
+                <h2 className="tile-title">{f.title}</h2>
+                <span className="tile-link">Open</span>
+              </div>
+            </Link>
+          ))}
         </div>
-      </footer>
+      </main>
+
+      <Footer />
     </div>
   );
-};
+}
 
 export default StudentDashboard;

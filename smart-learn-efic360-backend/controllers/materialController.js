@@ -2,24 +2,59 @@
 const path = require("path");
 const fs = require("fs/promises");
 
-// Load discriminated models
 const { Content, Video, Pdf, Assignment, Notes, Links, Quiz } = require("../models/materialModel");
+const Notification = require('../models/Notification');
 
 const UPLOAD_ROOT = path.join(__dirname, "..", "uploads");
 
-/* --------------------------------- helpers --------------------------------- */
+/* ------------------------------- URL helpers ------------------------------- */
+
+/** Builds a public URL from a file path that is relative to the /uploads root. */
+function makePublicURL(relPath, baseUrl) {
+  if (!relPath) return undefined;
+  // If it's already an absolute URL, return as-is
+  if (/^https?:\/\//i.test(relPath)) return relPath;
+  // Ensure no double slashes
+  const base = String(baseUrl || "").replace(/\/+$/, "");
+  const rel = String(relPath).replace(/^\/+/, "");
+  return `${base}/uploads/${rel}`;
+}
+
+/** Convert absolute path on disk to relative path under /uploads */
 function relFromUploads(absPath) {
   if (!absPath) return undefined;
-  return path.relative(UPLOAD_ROOT, absPath).replace(/\\/g, "/");
+  return path
+    .relative(UPLOAD_ROOT, absPath)
+    .replace(/\\/g, "/");
+}
+
+/** From a stored value (absolute URL or relative), get the REL path to the file under /uploads */
+function relFromStored(stored) {
+  if (!stored) return undefined;
+  // Absolute URL
+  if (/^https?:\/\//i.test(stored)) {
+    try {
+      const u = new URL(stored);
+      // expect pathname like /uploads/docs/xxx.pdf
+      return u.pathname.replace(/^\/+uploads\/+/, "");
+    } catch {
+      return undefined;
+    }
+  }
+  // Relative (with/without leading /uploads)
+  return String(stored).replace(/^\/+uploads\/+/, "");
+}
+
+async function unlinkIfExists(storedPathOrUrl) {
+  const rel = relFromStored(storedPathOrUrl);
+  if (!rel) return;
+  const abs = path.join(UPLOAD_ROOT, rel);
+  try { await fs.unlink(abs); } catch { /* ignore missing */ }
 }
 
 function parseJSONSafe(str, fallback = {}) {
   if (!str) return fallback;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(str); } catch { return fallback; }
 }
 
 function parseMaybeJSON(val) {
@@ -28,34 +63,40 @@ function parseMaybeJSON(val) {
   try { return JSON.parse(val); } catch { return undefined; }
 }
 
-async function unlinkIfExists(relPath) {
-  if (!relPath) return;
-  const abs = path.join(UPLOAD_ROOT, relPath);
-  try { await fs.unlink(abs); } catch { /* ignore missing */ }
-}
-
-/** Normalize any discriminator doc to a common shape for the frontend */
-function toClient(doc) {
+/**
+ * Normalize any discriminator doc to a common shape for the frontend.
+ * If options.absolute === true, convert stored relative file paths to absolute URLs using baseUrl.
+ * NOTE: We now store ABSOLUTE URLs in Mongo. makePublicURL() will no-op on absolute values.
+ */
+function toClient(doc, { absolute = false, baseUrl } = {}) {
   const d = doc?.toObject ? doc.toObject() : doc;
+
+  // Helper to maybe absolutize file paths (idempotent if already absolute)
+  const fileOut = (rel) => absolute ? makePublicURL(rel, baseUrl) : rel;
+
   const base = {
     _id: d._id,
     title: d.title,
-    type: d.type, // 'video' | 'pdf' | 'assingment' | 'notes' | 'link' | 'quiz'
+    subject: d.subject || "",
+    grade: d.grade ?? null,
+    type: d.type,
     description: d.description || "",
     createdAt: d.createdAt,
   };
 
   switch (d.type) {
     case "video":
-      base.file = d.file || undefined;       // videos/<file>
-      base.link = d.url || undefined;
+      base.file = fileOut(d.file);           // absolute already
+      base.link = d.url || undefined;        // keep external URL as-is
       base.meta = { videoSource: d.source }; // 'upload' | 'url'
       break;
     case "pdf":
-      base.file = d.file || undefined;       // docs/<file>
+      base.file = fileOut(d.file);           // absolute already
       break;
+    case "assignment":
     case "assingment":
-      base.file = d.file || undefined;
+      base.type = "assignment"; // normalize for frontend
+      base.file = fileOut(d.file);
       base.meta = { dueDate: d.date, maxMarks: d.maxMarks };
       break;
     case "notes":
@@ -65,7 +106,11 @@ function toClient(doc) {
       base.link = d.url;
       break;
     case "quiz":
-      base.meta = { questions: d.questions || [], totalPoints: d.totalPoints || 0 };
+      base.meta = {
+        questions: d.questions || [],
+        totalPoints: d.totalPoints || 0,
+        expiresAt: d.expiresAt || null,
+      };
       break;
   }
   return base;
@@ -74,17 +119,21 @@ function toClient(doc) {
 /* -------------------------------- controllers ------------------------------- */
 
 // POST /api/materials
-// Multer already handled `req.file` if present (at routes level)
 async function uploadMaterial(req, res) {
   try {
     const { title, description = "", type } = req.body;
+    const subject = (req.body.subject || "").trim();
+    const grade = req.body.grade !== undefined && req.body.grade !== "" ? Number(req.body.grade) : undefined;
+
     if (!title || !title.trim()) return res.status(400).json({ message: "Title is required." });
     if (!type) return res.status(400).json({ message: "Type is required." });
+    if (!subject) return res.status(400).json({ message: "Subject is required." });
+    if (grade === undefined || Number.isNaN(grade)) return res.status(400).json({ message: "Grade is required." });
 
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
     let created;
 
     if (type === "video") {
-      // Accept file OR url with multiple hints
       const rawMeta = parseJSONSafe(req.body.meta);
       const hint = (req.body.videoSource || rawMeta.videoSource || "").toLowerCase();
       const hasFile = !!req.file;
@@ -97,47 +146,44 @@ async function uploadMaterial(req, res) {
       else if (hasFile) source = "upload";
       else if (hasUrl) source = "url";
 
-      if (!source) {
-        return res.status(400).json({ message: "Provide a video file or a video URL." });
-      }
+      if (!source) return res.status(400).json({ message: "Provide a video file or a video URL." });
 
       if (source === "url") {
         created = await Video.create({
-          title,
-          description,
-          type: "video",
-          source: "url",
-          url: urlField,
+          title, description, subject, grade,
+          type: "video", source: "url", url: urlField,
         });
       } else {
         if (!req.file) return res.status(400).json({ message: "Video file is required." });
+        const rel = relFromUploads(req.file.path);
         created = await Video.create({
-          title,
-          description,
-          type: "video",
-          source: "upload",
-          file: relFromUploads(req.file.path),
+          title, description, subject, grade,
+          type: "video", source: "upload",
+          file: makePublicURL(rel, baseUrl),
         });
       }
     } else if (type === "pdf") {
       if (!req.file) return res.status(400).json({ message: "PDF file is required." });
+      const rel = relFromUploads(req.file.path);
       created = await Pdf.create({
-        title,
-        description,
+        title, description, subject, grade,
         type: "pdf",
-        file: relFromUploads(req.file.path),
+        file: makePublicURL(rel, baseUrl),
       });
-    } else if (type === "assingment") { // keep the existing key to match your model
-      const { date, maxMarks } = req.body;
-      if (!req.file) return res.status(400).json({ message: "Assignment file is required." });
-      if (!date) return res.status(400).json({ message: "Assignment date is required." });
+    } else if (type === "assignment" || type === "assingment") {
+      const meta = parseJSONSafe(req.body.meta);
+      const dueDate = meta.dueDate || req.body.dueDate || req.body.date;
+      const maxMarks = meta.maxMarks ?? req.body.maxMarks;
 
+      if (!req.file) return res.status(400).json({ message: "Assignment file is required." });
+      if (!dueDate) return res.status(400).json({ message: "Assignment due date is required." });
+
+      const rel = relFromUploads(req.file.path);
       created = await Assignment.create({
-        title,
-        description,
+        title, description, subject, grade,
         type: "assingment",
-        file: relFromUploads(req.file.path),
-        date: new Date(date),
+        file: makePublicURL(rel, baseUrl),
+        date: new Date(dueDate),
         maxMarks: Number(maxMarks ?? 100),
       });
     } else if (type === "notes") {
@@ -147,8 +193,7 @@ async function uploadMaterial(req, res) {
         return res.status(400).json({ message: "Notes content is required." });
       }
       created = await Notes.create({
-        title,
-        description,
+        title, description, subject, grade,
         type: "notes",
         notes,
       });
@@ -156,8 +201,7 @@ async function uploadMaterial(req, res) {
       const url = (req.body.url || req.body.link || "").trim();
       if (!url) return res.status(400).json({ message: "URL is required." });
       created = await Links.create({
-        title,
-        description,
+        title, description, subject, grade,
         type: "link",
         url,
       });
@@ -166,31 +210,58 @@ async function uploadMaterial(req, res) {
       const questions = Array.isArray(meta.questions)
         ? meta.questions
         : parseMaybeJSON(req.body.questions);
+      const expiresAt = meta.expiresAt || req.body.expiresAt || null;
+
       if (!questions || !questions.length) {
         return res.status(400).json({ message: "At least one quiz question is required." });
       }
+
+      const totalPoints = questions.reduce((s, q) => s + (Number(q.points || 0) || 0), 0);
+
       created = await Quiz.create({
-        title,
-        description,
+        title, description, subject, grade,
         type: "quiz",
         questions,
+        totalPoints,
+        ...(expiresAt ? { expiresAt: new Date(expiresAt) } : {}),
       });
     } else {
       return res.status(400).json({ message: `Unsupported type: ${type}` });
     }
 
-    return res.status(201).json(toClient(created));
+    /* === NEW: create a broadcast notification for this grade/subject === */
+    try {
+      await Notification.create({
+        grade,
+        subject,
+        materialId: created._id,
+        title: `New ${String(created.type).toUpperCase()}: ${title}`,
+        message: description || '',
+        type: created.type,
+        link: `/dashboard/materials/${created._id}`,
+        createdBy: req.user?._id,
+      });
+    } catch (nerr) {
+      console.error('create material notification error:', nerr);
+      // do not block the main response
+    }
+    /* === END NEW === */
+
+    const responseBase = `${req.protocol}://${req.get("host")}`;
+    return res.status(201).json(toClient(created, { absolute: true, baseUrl: responseBase }));
   } catch (err) {
     console.error("uploadMaterial error:", err);
     return res.status(500).json({ message: "Failed to save material.", error: err.message });
   }
 }
 
+
 // GET /api/materials
-async function getMaterials(_req, res) {
+async function getMaterials(req, res) {
   try {
     const items = await Content.find().sort({ createdAt: -1 }).lean();
-    const normalized = items.map(toClient);
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const normalized = items.map(d => toClient(d, { absolute: true, baseUrl }));
     return res.json(normalized);
   } catch (err) {
     console.error("getMaterials error:", err);
@@ -203,7 +274,8 @@ async function getMaterialById(req, res) {
   try {
     const doc = await Content.findById(req.params.id);
     if (!doc) return res.status(404).json({ message: "Not found" });
-    return res.json(toClient(doc));
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    return res.json(toClient(doc, { absolute: true, baseUrl }));
   } catch (err) {
     console.error("getMaterialById error:", err);
     return res.status(500).json({ message: "Failed to fetch material." });
@@ -211,18 +283,24 @@ async function getMaterialById(req, res) {
 }
 
 // PUT /api/materials/:id
-// Supports replacing file for video/pdf/assingment
+// Supports replacing file for video/pdf/assignment
 async function updateMaterial(req, res) {
   try {
     const { id } = req.params;
-    const { title, description, type } = req.body; // type should match existing (optional to pass)
+    const { title, description } = req.body;
 
     const doc = await Content.findById(id);
     if (!doc) return res.status(404).json({ message: "Not found" });
 
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
     // Common fields
     if (title !== undefined) doc.title = title;
     if (description !== undefined) doc.description = description;
+
+    // Allow updating subject/grade
+    if (req.body.subject !== undefined) doc.subject = String(req.body.subject || "").trim();
+    if (req.body.grade !== undefined && req.body.grade !== "") doc.grade = Number(req.body.grade);
 
     // Type-specific updates
     if (doc.type === "video") {
@@ -240,10 +318,11 @@ async function updateMaterial(req, res) {
 
       if (source === "upload") {
         if (!req.file) return res.status(400).json({ message: "Video file is required." });
-        // remove old file if existed
         await unlinkIfExists(doc.file);
+        const rel = relFromUploads(req.file.path);
         doc.source = "upload";
-        doc.file = relFromUploads(req.file.path);
+        // STORE ABSOLUTE
+        doc.file = makePublicURL(rel, baseUrl);
         doc.url = undefined;
       } else if (source === "url") {
         if (!urlField) return res.status(400).json({ message: "Video URL is required." });
@@ -255,16 +334,24 @@ async function updateMaterial(req, res) {
     } else if (doc.type === "pdf") {
       if (req.file) {
         await unlinkIfExists(doc.file);
-        doc.file = relFromUploads(req.file.path);
+        const rel = relFromUploads(req.file.path);
+        // STORE ABSOLUTE
+        doc.file = makePublicURL(rel, baseUrl);
       }
-    } else if (doc.type === "assingment") {
-      const { date, maxMarks } = req.body;
+    } else if (doc.type === "assingment" || doc.type === "assignment") {
+      const meta = parseJSONSafe(req.body.meta);
+      const dueDate = meta.dueDate || req.body.dueDate || req.body.date;
+      const maxMarks = meta.maxMarks ?? req.body.maxMarks;
+
       if (req.file) {
         await unlinkIfExists(doc.file);
-        doc.file = relFromUploads(req.file.path);
+        const rel = relFromUploads(req.file.path);
+        // STORE ABSOLUTE
+        doc.file = makePublicURL(rel, baseUrl);
       }
-      if (date !== undefined) doc.date = new Date(date);
+      if (dueDate !== undefined) doc.date = new Date(dueDate);
       if (maxMarks !== undefined) doc.maxMarks = Number(maxMarks);
+      doc.type = "assingment"; // keep discriminator consistent
     } else if (doc.type === "notes") {
       const meta = parseJSONSafe(req.body.meta);
       const notes = req.body.notes ?? meta.content;
@@ -277,12 +364,23 @@ async function updateMaterial(req, res) {
       const questions = Array.isArray(meta.questions)
         ? meta.questions
         : parseMaybeJSON(req.body.questions);
-      if (questions) doc.questions = questions;
-      if (req.body.totalPoints !== undefined) doc.totalPoints = Number(req.body.totalPoints);
+
+      if (questions) {
+        doc.questions = questions;
+        // keep totalPoints in sync
+        doc.totalPoints = questions.reduce((s, q) => s + (Number(q.points || 0) || 0), 0);
+      }
+
+      const expiresAt = meta.expiresAt || req.body.expiresAt;
+      if (expiresAt !== undefined) {
+        doc.expiresAt = expiresAt ? new Date(expiresAt) : undefined;
+      }
     }
 
     await doc.save();
-    return res.json(toClient(doc));
+
+    const responseBase = `${req.protocol}://${req.get("host")}`;
+    return res.json(toClient(doc, { absolute: true, baseUrl: responseBase }));
   } catch (err) {
     console.error("updateMaterial error:", err);
     return res.status(500).json({ message: "Failed to update material.", error: err.message });
@@ -296,7 +394,7 @@ async function deleteMaterial(req, res) {
     if (!doc) return res.status(404).json({ message: "Not found" });
 
     if (doc.file) {
-      await unlinkIfExists(doc.file);
+      await unlinkIfExists(doc.file); // works for absolute or relative
     }
 
     await doc.deleteOne();

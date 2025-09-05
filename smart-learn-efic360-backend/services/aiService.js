@@ -1,35 +1,34 @@
-// // services/aiService.js
-// const { Configuration, OpenAIApi } = require('openai');
+// services/aiService.js
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// const configuration = new Configuration({
-//   apiKey: process.env.OPENAI_API_KEY,  // Make sure to set this in your environment variables
-// });
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
-// const openai = new OpenAIApi(configuration);
+function ensureKey() {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is missing. Add it to your backend .env");
+  }
+}
 
-// /**
-//  * Sends the conversation history to OpenAI's GPT model and returns the generated response.
-//  * @param {Array} messages - Array of message objects with `role` ('user'|'assistant') and `content` (string)
-//  * @returns {Promise<string>} AI-generated reply text
-//  */
-// async function getResponse(messages) {
-//   try {
-//     // OpenAI Chat Completion API expects messages in format [{role, content}, ...]
-//     const response = await openai.createChatCompletion({
-//       model: 'gpt-4',       // or 'gpt-3.5-turbo' or whichever model you prefer
-//       messages: messages,
-//       max_tokens: 150,
-//       temperature: 0.7,
-//     });
+async function getResponse(messages) {
+  ensureKey();
 
-//     const reply = response.data.choices[0].message.content.trim();
-//     return reply;
-//   } catch (error) {
-//     console.error('OpenAI API error:', error.response?.data || error.message);
-//     throw new Error('Failed to get AI response');
-//   }
-// }
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: MODEL });
 
-// module.exports = {
-//   getResponse,
-// };
+  const contents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  try {
+    const result = await model.generateContent({ contents });
+    const reply = result?.response?.text?.() ?? "…";
+    return reply.trim();
+  } catch (err) {
+    // Log detailed error for server, send safe text to client
+    console.error("Gemini error:", err?.response ?? err);
+    throw new Error("Gemini request failed. Check GEMINI_API_KEY, model, or usage limits.");
+  }
+}
+
+module.exports = { getResponse };

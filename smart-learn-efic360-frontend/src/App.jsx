@@ -36,6 +36,7 @@ import StudentLibrary from './pages/StudentLibrary';
 
 
 
+
 // import ApprovalsPage from './Admin/pages/ApprovalsPage';
 
 
@@ -43,6 +44,7 @@ import CourseManager from './Admin/pages/CourseManager';
 import AdminRegisterUserForm from './Admin/pages/AdminRegisterUserForm';
 import GradeClassManager from './Admin/pages/GradeClassManager';
 import ContentManager from './Admin/pages/ContentManager';
+import ContentManagerT from './Teachers/pages/ContentManagerT';
 import Feedback from './Admin/pages/Feedback';
 import ReportAnalytics from './Admin/pages/ReportAnalytics';
 import VerificationCenter from './Admin/pages/VerificationCenter';
@@ -53,7 +55,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ParentStudentDetails from './Parent/pages/ParentStudentDetails';
 import SendVerification from './pages/SendVerification';
 import VerifyingEmail from './pages/VerifyingEmail';
-
+AccessLogViewer
 // src/index.js or src/App.js
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -75,7 +77,11 @@ function App() {
           <Route path="/Teacher/TeacherDashboard" element={<TeacherDashboard />} />
           {/* <Route path="/Admin/ApprovalsPage" element={<ApprovalsPage />} /> */}
 
+          <Route path="/quiz/:id" element={<QuizPlayer />} />
+        <Route path="/student/quiz/:id" element={<QuizPlayer />} />
 
+
+           
           <Route path="/Parent/ParentDashboard" element={<ParentDashboard />} />
           <Route path="/Parent/ParentStudentDetails" element={<ParentStudentDetails />} />
 
@@ -104,9 +110,14 @@ function App() {
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/StudentLibrary" element={<StudentLibrary />} />
         <Route path="/QuizPlayer" element={<QuizPlayer />} />
+         <Route path="/quiz/:id" element={<QuizPlayer />} />
+  <Route path="/quiz/:id/results" element={<QuizResults />} />
         <Route path="/Admin/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/Admin/AdminRegisterUserForm" element={<AdminRegisterUserForm />} />
         <Route path="/Admin/ContentManager" element={<ContentManager />} />
+        <Route path="/Teachers/ContentManagerT" element={<ContentManagerT />} />
+        <Route path="/Admin/AccessLogViewer" element={<AccessLogViewer />} />
+        
         <Route path="/Admin/GradeClassManager" element={<GradeClassManager />} />
         <Route path="/Admin/UserManagement" element={<UserManagement />} />
         <Route path="/Admin/CourseManager" element={<CourseManager />} />

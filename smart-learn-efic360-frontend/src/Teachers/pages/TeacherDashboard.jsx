@@ -9,7 +9,7 @@ const FEATURES = [
   { title: "Update Profile",            icon: "fa-id-badge",        path: "/ProfileEdit" },
   { title: "Student Management",    icon: "fa-users",           path: "/teacher/students" },
   { title: "Lesson Management",     icon: "fa-book",            path: "/teacher/lessons" },
- { title: "ContentManager",        icon: "fa-book",         path: "/Admin/ContentManager" },
+ { title: "ContentManagerT",        icon: "fa-book",         path: "/Teachers/ContentManagerT" },
   { title: "Assignments",           icon: "fa-file-alt",        path: "/teacher/assignments" },
   { title: "Feedback & Grading",    icon: "fa-graduation-cap",  path: "/teacher/grading" },
   { title: "Performance Analytics", icon: "fa-line-chart",      path: "/teacher/analytics" },

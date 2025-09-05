@@ -23,6 +23,21 @@ const protect = asyncHandler(async (req, res, next) => {
       return res.status(401).json({ message: 'Token verification failed' });
     }
 });
+function requireAuth(req, res, next) {
+  // if using JWT in Authorization header
+  // verify token, set req.user = { _id, role, ... }
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  next();
+}
+
+function requireRole(roles = []) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ message: "Forbidden" });
+    next();
+  };
+}
+
 
 // Middleware to check for admin role
 const isAdmin = (req, res, next) => {

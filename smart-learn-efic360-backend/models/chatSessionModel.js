@@ -1,45 +1,23 @@
 // models/chatSessionModel.js
-const mongoose = require('mongoose');
+const { Schema, model } = require("mongoose");
 
-const messageSchema = new mongoose.Schema({
-  sender: {
-    type: String,
-    enum: ['user', 'bot'],
-    required: true,
+const MessageSchema = new Schema(
+  {
+    sender: { type: String, enum: ["user", "bot"], required: true },
+    text: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
   },
-  text: {
-    type: String,
-    required: true,
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { _id: false }
+);
 
-const chatSessionSchema = new mongoose.Schema({
-  userId: {
-    type: String, // or mongoose.Schema.Types.ObjectId if referencing a User model
-    required: true,
-    index: true,
+const ChatSessionSchema = new Schema(
+  {
+    // Either bind by userId (if you have auth) or by sessionId from the client
+    userId: { type: String }, // optional
+    sessionId: { type: String, index: true }, // from localStorage
+    messages: { type: [MessageSchema], default: [] },
   },
-  messages: [messageSchema],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { timestamps: true }
+);
 
-// Update updatedAt before saving
-chatSessionSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-const ChatSession = mongoose.model('ChatSession', chatSessionSchema);
-
-module.exports = ChatSession;
+module.exports = model("ChatSession", ChatSessionSchema);

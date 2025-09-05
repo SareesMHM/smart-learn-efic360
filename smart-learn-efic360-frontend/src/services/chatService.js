@@ -1,22 +1,13 @@
 // src/services/chatService.js
-import axios from './api'; // Axios instance configured with baseURL
+import axios from "axios";
 
-/**
- * Send a chat message to the backend and receive a reply
- * @param {string} message - The user's chat message
- * @param {string} [sessionId] - Optional session identifier to maintain context
- * @returns {Promise<{ reply: string }>} The chatbot's reply
- */
-const sendMessage = async (message, sessionId = null) => {
-  const payload = { message };
-  if (sessionId) {
-    payload.sessionId = sessionId;
-  }
-  
-  const response = await axios.post('/chat/send-message', payload);
-  return response.data; // expected: { reply: 'AI response text' }
-};
+const root = axios.create({
+  baseURL: import.meta.env.VITE_ROOT_API_BASE_URL || "http://localhost:5000",
+  headers: { "Content-Type": "application/json" },
+});
 
-export default {
-  sendMessage,
-};
+export async function sendMessage(message, sessionId) {
+  const res = await root.post("/chat/send-message", { message, sessionId });
+  return res.data; // { reply }
+}
+export default { sendMessage };

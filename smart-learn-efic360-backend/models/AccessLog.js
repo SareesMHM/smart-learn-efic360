@@ -1,29 +1,41 @@
-const mongoose = require('mongoose');
+// models/AccessLog.js
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const accessLogSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  role: { type: String, enum: ['student', 'teacher', 'admin', 'parent'], required: true },
-  ip: String,
-  userAgent: String,
-  action: { type: String, enum: ['login', 'logout'], required: true },
-  timestamp: { type: Date, default: Date.now }
-});
+const AccessLogSchema = new Schema(
+  {
+    // Not required → lets you log failed attempts before user is known
+    userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
 
-module.exports = mongoose.model('AccessLog', accessLogSchema);
+    // Not required → role might be unknown when login fails
+    role: {
+      type: String,
+      enum: ["student", "teacher", "admin", "parent"],
+      index: true,
+    },
 
-const AccessLog = require('../models/AccessLog');
+    ip: { type: String, index: true },
+    userAgent: String,
 
-const logAccess = (action) => async (req, res, next) => {
-  if (req.user) {
-    await AccessLog.create({
-      userId: req.user._id,
-      role: req.user.role,
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-      action
-    });
-  }
-  next();
-};
+    action: {
+      type: String,
+      enum: ["login", "logout"],
+      required: true,
+      index: true,
+    },
 
-module.exports = logAccess;
+    // Used by stats/suspicious; set true/false on login attempts
+    success: { type: Boolean },
+
+    // Extra info (e.g., { emailTried } for failures)
+    meta: Schema.Types.Mixed,
+
+    timestamp: { type: Date, default: Date.now, index: true },
+  },
+  { versionKey: false }
+);
+
+// Helpful indexes
+AccessLogSchema.index({ timestamp: -1, action: 1 });
+
+module.exports = mongoose.model("AccessLog", AccessLogSchema);

@@ -7,6 +7,8 @@ async function getChatResponse(message, sessionId) {
   return response.data.reply;
 }
 
+
+
 module.exports = {
   getChatResponse,
 };

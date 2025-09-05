@@ -1,38 +1,39 @@
 // src/services/adminService.js
 import axios from 'axios';
 
-// Create a single axios instance for all admin calls
+/** Base URL:
+ *  - Set VITE_API_BASE_URL to something like: http://localhost:5000/api
+ *  - Falls back to http://localhost:5000/api
+ */
+const API_ROOT = (import.meta.env?.VITE_API_BASE_URL || 'http://localhost:5000/api')
+  .replace(/\/+$/,''); // trim trailing slash
+
 const API = axios.create({
-  baseURL:
-    (import.meta.env?.VITE_API_BASE_URL
-      ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')}/api/admin`
-      : 'http://localhost:5000/api/admin'),
-  withCredentials: true, // needed if your server sets httpOnly auth cookies
+  baseURL: `${API_ROOT}/admin`,
+  withCredentials: true,           // needed if server uses httpOnly cookies
   timeout: 20000,
+  // If you use csurf, keep these; otherwise they don't hurt
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-// Optional: also send Bearer token if you store one
+// Attach Bearer automatically if stored
 API.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem('token');
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+  if (token && !cfg.headers.Authorization) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
 });
 
-// Helper to strip empty params
+// Utility: strip empty params
 const toParams = (obj = {}) =>
-  Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== '')
-  );
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== ''));
 
-// ------- CRUD -------
+/* =========================
+   Admin Users API
+   ========================= */
 
-// Create user (accepts FormData OR plain object). Do NOT set multipart header manually.
-const addUser = async (data) => (await API.post('/users', data)).data;
-
-// Unified list (server-side pagination + search)
-// GET /api/admin/users?role=all&q=&page=1&limit=10&sort=-createdAt&isApproved=true
-// -> { total, page, pages, perPage, data }
-const getAllUsers = async ({
+// GET /api/admin/users?role=&q=&page=&limit=&sort=&isApproved=
+export const getAllUsers = async ({
   role = 'all',
   q = '',
   page = 1,
@@ -40,36 +41,35 @@ const getAllUsers = async ({
   sort = '-createdAt',
   isApproved,
 } = {}) => {
-  const roleParam = role === 'all' ? undefined : role;
-  const params = toParams({ role: roleParam, q, page, limit, sort, isApproved });
-  return (await API.get('/users', { params })).data;
+  const params = toParams({
+    role: role === 'all' ? undefined : role,
+    q, page, limit, sort, isApproved,
+  });
+  return (await API.get('/users', { params })).data; // -> { total, page, pages, perPage, data }
 };
 
-// Backward-compat helper: returns just the array for a role
-const getUsersByRole = async (role) => {
-  const res = await getAllUsers({ role, limit: 1000 }); // adjust limit as needed
-  return Array.isArray(res) ? res : res.data; // normalize legacy vs paginated
+export const editUser  = async (id, payload) => (await API.put(`/users/${id}`, payload)).data;
+export const deleteUser = async (id) => (await API.delete(`/users/${id}`)).data;
+
+// Moderation (keep these routes in your server)
+export const approveStudent = async (id) => (await API.post(`/users/${id}/approve`)).data;
+export const rejectStudent  = async (id) => (await API.post(`/users/${id}/reject`)).data;
+
+// Email
+export const resendVerificationEmail = async (id) => (await API.post(`/users/${id}/resend`)).data;
+
+// Optional helper for auth flows
+export const setToken = (token) => {
+  if (token) localStorage.setItem('access_token', token);
+  else localStorage.removeItem('access_token');
 };
-
-const editUser = async (id, payload) => (await API.put(`/users/${id}`, payload)).data;
-
-const deleteUser = async (id) => (await API.delete(`/users/${id}`)).data;
-
-// ------- Student moderation -------
-const approveStudent = async (id) => (await API.put(`/students/${id}/approve`)).data;
-
-const rejectStudent = async (id) => (await API.delete(`/students/${id}/reject`)).data;
-
-// ------- Email -------
-const resendVerificationEmail = async (id) => (await API.post(`/resend-email/${id}`)).data;
 
 export default {
-  addUser,
   getAllUsers,
-  getUsersByRole,
   editUser,
   deleteUser,
   approveStudent,
   rejectStudent,
   resendVerificationEmail,
+  setToken,
 };

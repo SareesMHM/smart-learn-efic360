@@ -4,14 +4,14 @@ const User = require('../models/User');
 
 // Create a new course
 const createCourse = asyncHandler(async (req, res) => {
-  const { name, description, teacher } = req.body;
+  const { subject, grade, teacherId } = req.body;
 
-  if (!name) return res.status(400).json({ message: 'Course name is required.' });
-
+  // if (!subject) return res.status(400).json({ message: 'Course subject is required.' });
+//grade
   const course = new Course({
-    name,
-    description,
-    teacher: teacher || null
+    subject,
+    grade,
+    teacherId: teacherId || null
   });
 
   const saved = await course.save();
@@ -25,10 +25,12 @@ const getCourses = asyncHandler(async (req, res) => {
 
   if (search) {
     const regex = new RegExp(search, 'i');
-    filter = { $or: [{ name: regex }, { description: regex }] };
+    filter = { $or: [{ subject: regex }, { grade: regex }] };
   }
 
-  const courses = await Course.find(filter).populate('teacher', 'fullName email');
+  const courses = await Course.find(filter)
+  .populate({ path: 'teacherId', select: 'fullName email' })
+  .lean();
   res.status(200).json(courses);
 });
 
@@ -37,11 +39,11 @@ const updateCourse = asyncHandler(async (req, res) => {
   const course = await Course.findById(req.params.id);
   if (!course) return res.status(404).json({ message: 'Course not found.' });
 
-  const { name, description, teacher } = req.body;
+  const { subject, grade, teacherId } = req.body;
 
-  course.name = name || course.name;
-  course.description = description || course.description;
-  course.teacher = teacher || course.teacher;
+  course.subject = subject || course.subject;
+  course.grade = grade || course.grade;
+  course.teacher = teacherId || course.teacherId;
 
   const updated = await course.save();
   res.status(200).json(updated);

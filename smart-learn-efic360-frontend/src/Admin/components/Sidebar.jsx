@@ -4,7 +4,7 @@ const links = [
   { to: "/Admin/AdminDashboard", icon: "ti-home", label: "Admin Dashboard" },
   { to: "/Admin/AdminRegisterUserForm", icon: "ti-pencil-alt", label: "Add User" },
   { to: "/Admin/CourseManager", icon: "ti-book", label: "Add Course" },
-  { to: "/profile", icon: "ti-user", label: "Profile" },
+  { to: "/ProfileView", icon: "ti-user", label: "Profile" },
   { to: "/notifications", icon: "ti-bell", label: "Notifications" },
   { to: "/contact", icon: "ti-envelope", label: "Contact Us" },
   { to: "/logout", icon: "ti-power-off", label: "Logout" },

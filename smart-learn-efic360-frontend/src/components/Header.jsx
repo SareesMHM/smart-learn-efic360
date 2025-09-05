@@ -1,88 +1,103 @@
+// src/components/Header.jsx
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import eficLogo from "../images/efic-icon-512.png"; 
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+const Header = ({ onToggleSidebar, user }) => {
+  const [open, setOpen] = useState(false);
+  const [imgOk, setImgOk] = useState(Boolean(user?.profilePic || user?.avatarUrl || user?.photoURL));
+  const [logoOk, setLogoOk] = useState(true);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
 
+  // Derive display info
+  const displayName = user?.fullName || user?.name || user?.username || "Student";
+  const avatarUrl   = user?.profilePic || user?.avatarUrl || user?.photoURL;
 
-const Header = () => {
-   // State for sidebar open/close
-  const [sidebarClosed, setSidebarClosed] = useState(false);
+  const initials = displayName
+    .trim()
+    .split(/\s+/)
+    .map(w => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
-  // Toggle sidebar open/close
-  const toggleSidebar = () => {
-    setSidebarClosed(prev => !prev);
+  // Close on outside click or Esc
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!menuRef.current || !btnRef.current) return;
+      if (!menuRef.current.contains(e.target) && !btnRef.current.contains(e.target)) setOpen(false);
+    };
+    const onEsc = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, []);
 
-    // Additionally, if your #app container needs a class, toggle it here
-    // For example, toggling 'app-sidebar-closed' class on body or #app
-    const appElement = document.getElementById('app');
-    if (appElement) {
-      appElement.classList.toggle('app-sidebar-closed');
-    }
-  };
   return (
-    <header className="navbar navbar-default navbar-static-top">
-      <div className="navbar-header">
+    <header className="navbar topbar" role="banner">
+      {/* Left: mobile sidebar toggle + brand */}
+      <div className="topbar__left">
         <button
           type="button"
-          className="sidebar-mobile-toggler pull-left hidden-md hidden-lg"
+          className="topbar__iconbtn topbar__menu"
           aria-label="Toggle sidebar"
-          onClick={toggleSidebar}
+          onClick={onToggleSidebar}
         >
-          <i className="ti-align-justify"></i>
+          <span className="topbar__menu-bars" aria-hidden="true" />
         </button>
 
-        <a className="navbar-brand" href="#">
-          <h2 style={{ paddingTop: '5%', color: '#000' }}>EFIC</h2>
-        </a>
-
-       
-
-        <button
-  type="button"
-  className="sidebar-mobile-toggler pull-left hidden-md hidden-lg"
-  aria-label="Toggle sidebar"
-  onClick={() => {
-    
-  }}
->
-  <i className="ti-align-justify"></i>
-</button>
+        <Link to="/" className="topbar__brand" aria-label="EFIC Home">
+          <img
+            src={logoOk ? eficLogo : "/favicon.ico"}   // uses imported image; falls back to favicon if it fails
+            alt="EFIC logo"
+            className="topbar__brand-logo"
+            loading="lazy"
+            onError={() => setLogoOk(false)}
+          />
+          <span className="topbar__brand-text">EFIC</span>
+        </Link>
       </div>
 
-      <div className="navbar-collapse collapse">
-        <ul className="nav navbar-right">
-          <li className="hidden-xs" style={{ paddingTop: '5%' }}>
-            <h2>Smart Learn EFIC 360</h2>
-          </li>
+      {/* Right: profile dropdown */}
+      <div className="topbar__right" ref={menuRef}>
+        <button
+          ref={btnRef}
+          type="button"
+          className="topbar__profile"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          onClick={() => setOpen(v => !v)}
+        >
+          {avatarUrl && imgOk ? (
+            <img
+              className="topbar__avatar-img"
+              src={avatarUrl}
+              alt={`${displayName} avatar`}
+              onError={() => setImgOk(false)}
+            />
+          ) : (
+            <span className="topbar__avatar" aria-hidden="true">{initials}</span>
+          )}
+          <span className="topbar__user">{displayName}</span>
+          <i className={`ti-angle-${open ? "up" : "down"}`} aria-hidden="true" />
+        </button>
 
-          <li className="dropdown current-user">
-            <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-              <img src="" alt="User Profile" />
-              <span className="username">
-                Student <i className="ti-angle-down"></i>
-              </span>
-            </a>
-            <ul className="dropdown-menu dropdown-dark animated fadeInDown">
-              <li>
-                <Link to="/change-password">Change Password</Link>
-              </li>
-              <li>
-                <Link to="/logout">Log Out</Link>
-              </li>
-            </ul>
+        <ul className={`dropdown-menu ${open ? "show" : ""}`} role="menu" aria-label="Profile">
+          <li role="none">
+            <Link role="menuitem" to="/change-password" className="dropdown-item" onClick={() => setOpen(false)}>
+              Change Password
+            </Link>
+          </li>
+          <li role="none">
+            <Link role="menuitem" to="/logout" className="dropdown-item" onClick={() => setOpen(false)}>
+              Log Out
+            </Link>
           </li>
         </ul>
-
-        <div
-           className="close-handle visible-xs-block menu-toggler"
-          onClick={toggleSidebar}
-          role="button"
-          tabIndex={0}
-          aria-label="Close menu"
-          onKeyPress={e => { if (e.key === 'Enter') toggleSidebar(); }}
-        >
-          <div className="arrow-left"></div>
-          <div className="arrow-right"></div>
-        </div>
       </div>
     </header>
   );

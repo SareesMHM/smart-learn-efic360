@@ -11,7 +11,7 @@ import axios from './api'; // Axios instance configured with baseURL
  */
 export const login = async (email, password) => {
   const response = await axios.post('/login', { email, password }, {
-  withCredentials: true // ⬅️ This is required to send/receive cookies
+  withCredentials: true // ⬅This is required to send/receive cookies
 });
   return response.data; // expected { token, user }
 };

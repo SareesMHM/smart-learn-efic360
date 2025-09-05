@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+const {User} = require('../models/User');
 const sendmail = require('../utils/emailHelper');
 // Add user by admin
 const addUser = asyncHandler(async (req, res) => {
@@ -64,9 +64,63 @@ const addUser = asyncHandler(async (req, res) => {
 });
 // GET /api/admin/users
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find();
-  res.status(200).json(users);
+  const {
+    role = 'all',      // 'all' | 'student' | 'teacher' | 'parent' | 'admin'
+    q = '',            // search: name/email/nic/phone
+    page = 1,
+    limit = 10,
+    sort = '-createdAt', // e.g. "-createdAt,fullName"
+    isApproved,        // true/false
+  } = req.query;
+
+  const pageNum  = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+
+  // Build filter
+  const filter = {};
+  if (role && role !== 'all') filter.role = String(role).toLowerCase();
+  if (isApproved !== undefined) {
+    filter.isApproved = String(isApproved) === 'true' || isApproved === true || isApproved === '1';
+  }
+  if (q && q.trim()) {
+    const safe = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape regex
+    const re = new RegExp(safe, 'i');
+    filter.$or = [{ fullName: re }, { email: re }, { nic: re }, { phone: re }];
+  }
+
+  // Count & pages
+  const total = await User.countDocuments(filter);
+  const pages = Math.max(1, Math.ceil(total / limitNum));
+  const skip  = (pageNum - 1) * limitNum;
+
+  // Sort object
+  const sortObj = {};
+  String(sort)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .forEach(f => {
+      if (f.startsWith('-')) sortObj[f.slice(1)] = -1;
+      else sortObj[f] = 1;
+    });
+
+  // Fetch page
+  const data = await User.find(filter)
+    .sort(sortObj)
+    .skip(skip)
+    .limit(limitNum)
+    .select('-password') // hide sensitive fields
+    .lean();
+
+  res.status(200).json({
+    data,
+    total,
+    page: pageNum,
+    pages,
+    perPage: limitNum,
+  });
 });
+
 // GET /api/admin/users?role=student
 const getUsersByRole = asyncHandler(async (req, res) => {
   const { role } = req.query;
