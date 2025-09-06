@@ -1,23 +1,55 @@
 // src/components/Header.jsx
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import eficLogo from "../images/efic-icon-512.png"; 
+import eficLogo from "../images/efic-icon-512.png";
+import api from "../api/axios"; // <-- axios instance with withCredentials=true
 
-const Header = ({ onToggleSidebar, user }) => {
+const Header = ({ onToggleSidebar}) => {
   const [open, setOpen] = useState(false);
-  const [imgOk, setImgOk] = useState(Boolean(user?.profilePic || user?.avatarUrl || user?.photoURL));
+  const [me, setMe] = useState(null);
+  const [imgOk, setImgOk] = useState(false);
   const [logoOk, setLogoOk] = useState(true);
   const btnRef = useRef(null);
   const menuRef = useRef(null);
 
-  // Derive display info
-  const displayName = user?.fullName || user?.name || user?.username || "Student";
-  const avatarUrl   = user?.profilePic || user?.avatarUrl || user?.photoURL;
+  // If parent passes a new user prop, reflect it
+  // useEffect(() => {
+  //   // setMe(user || null);
+  //   setImgOk(Boolean(user?.profileImage || user?.avatarUrl || user?.photoURL));
+  // }, [user]);
+
+  // Fetch /auth/me from cookies if no user prop
+  useEffect(() => {
+    let alive = true;
+    // if (user) return; // parent controls it
+
+    (async () => {
+      try {
+        const { data } = await api.get("/getProfile");
+        if (!alive) return;
+        setMe(data.user);
+        setImgOk(Boolean(data?.profileImage || data?.avatarUrl || data?.photoURL));
+      } catch (e) {
+        // not logged in or request failed; keep defaults
+        console.warn("Header: /auth/me failed", e?.response?.status || e?.message);
+      }
+    })();
+
+    return () => { alive = false; };
+  }, []);
+
+  // Derive display info from me (or fallback)
+  const displayName =
+    me?.fullName || me?.name || me?.username || "Student";
+  const avatarUrl =
+    me?.profileImage || me?.avatarUrl || me?.photoURL;
+
+console.log(me)
 
   const initials = displayName
     .trim()
     .split(/\s+/)
-    .map(w => w[0])
+    .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
@@ -52,7 +84,7 @@ const Header = ({ onToggleSidebar, user }) => {
 
         <Link to="/" className="topbar__brand" aria-label="EFIC Home">
           <img
-            src={logoOk ? eficLogo : "/favicon.ico"}   // uses imported image; falls back to favicon if it fails
+            src={logoOk ? eficLogo : "/favicon.ico"}
             alt="EFIC logo"
             className="topbar__brand-logo"
             loading="lazy"
@@ -70,9 +102,9 @@ const Header = ({ onToggleSidebar, user }) => {
           className="topbar__profile"
           aria-haspopup="menu"
           aria-expanded={open}
-          onClick={() => setOpen(v => !v)}
+          onClick={() => setOpen((v) => !v)}
         >
-          {avatarUrl && imgOk ? (
+          {avatarUrl ? (
             <img
               className="topbar__avatar-img"
               src={avatarUrl}

@@ -7,14 +7,17 @@ import Sidebar from "../components/Sidebar";
 
 const FEATURES = [
   { title: "User Management",       icon: "fa-users",        path: "/Admin/UserManagement" },
-  { title: "Teacher Approvals",     icon: "fa-check",        path: "/Admin/approvals" },
+
   { title: "Student Enrollments",   icon: "fa-user-graduate",path: "/Admin/students" },
-  { title: "Course Management",     icon: "fa-book",         path: "/Admin/CourseManager" },
+  { title: "Class Management",     icon: "fa-book",         path: "/Admin/CourseManager" },
   { title: "ContentManager",        icon: "fa-book",         path: "/Admin/ContentManager" },
-  { title: "GradeClassManager",     icon: "fa-book",         path: "/Admin/GradeClassManager" },
+
   { title: "Feedback",              icon: "fa-comment",      path: "/Admin/Feedback" },
   { title: "Reports & Analytics",   icon: "fa-chart-bar",    path: "/Admin/ReportAnalytics" },
-  { title: "VerificationCenter",    icon: "fa-shield-check", path: "/Admin/VerificationCenter" },
+  
+  
+  { title: "Admin Chat", icon: "fa-comments", path: "/chat/admin" },
+
   { title: "Notifications",         icon: "fa-bell",         path: "/Admin/notifications" },
   { title: "System Settings",       icon: "fa-cogs",         path: "/Admin/settings" },
   { title: "AccessLogViewer",       icon: "fa-cogs",         path: "/Admin/AccessLogViewer" },

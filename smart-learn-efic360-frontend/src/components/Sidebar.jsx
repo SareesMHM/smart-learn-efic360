@@ -27,13 +27,13 @@ const Sidebar = () => {
             </li>
 
             <li>
-              <Link to="/assignments">
+              <Link to="/chatbot">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-pencil-alt"></i>
                   </div>
                   <div className="item-inner">
-                    <span className="title"> Assignments </span>
+                    <span className="title"> Chat with MUNIMA </span>
                   </div>
                 </div>
               </Link>
@@ -66,13 +66,13 @@ const Sidebar = () => {
             </li>
 
             <li>
-              <Link to="/notifications">
+              <Link to="/updateProfile">
                 <div className="item-content">
                   <div className="item-media">
                     <i className="ti-bell"></i>
                   </div>
                   <div className="item-inner">
-                    <span className="title"> Notifications </span>
+                    <span className="title"> updateProfile </span>
                   </div>
                 </div>
               </Link>

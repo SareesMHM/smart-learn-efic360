@@ -15,7 +15,7 @@ const FEATURES = [
   { title: "Performance Analytics", icon: "fa-line-chart",      path: "/teacher/analytics" },
   { title: "Attendance Tracking",   icon: "fa-calendar-check",  path: "/teacher/attendance" },
   { title: "Materials",             icon: "fa-folder-open",     path: "/teacher/materials" },
- { title: "System Settings",       icon: "fa-cogs",         path: "/Admin/settings" },
+ { title: "TeacherChat",       icon: "fa-cogs",         path: "/chat/teacher" },
   { title: "AssignmentSubmissions",       icon: "fa-cogs",         path: "/Admin/AssignmentSubmissions" },
   { title: "QuizResults",       icon: "fa-cogs",         path: "/Admin/QuizResults" },
 ];
